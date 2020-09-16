@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="shortcut icon" type = "image/x-icon" href="/client/resources/favicon.ico">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.rawgit.com/PascaleBeier/bootstrap-validate/v2.2.0/dist/bootstrap-validate.js"></script>
+
+    <title>Obligatorio 1</title>
+
+    <style type="text/css"> 
+
+
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            height: 100%;
+            background-color: #DCDCDC;
+            /* background: url('/client/resources/fondo2.jpg'); */
+            background-size: cover;
+            overflow: auto;
+        }
+
+        .top-buffer { margin-top:20px; }
+        .top-buffer2 { margin-top:40px; }
+        .top-buffer3 { margin-top:5px; }
+      
+
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+    </style>
+    
+
+
+</head>
+
+
+<body style="overflow: hidden">
+
+
+    <div id = 'containerDiv' >
+
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="/">
+              <img src="/client/resources/t_icon.png" width="30" height="30" class="d-inline-block align-top" alt="">
+              Controlador de temperatura
+            </a>
+          </nav>
+      
+        <div class = "row text-center top-buffer2">
+            <div class = "col-md-4"></div>
+            <div class = "col-md-4">
+                <h1 class="display-4">Configuracion</h1>
+            </div>
+            <div class = "col-md-4"></div>
+        </div>
+
+        <div class = "row text-center top-buffer2">
+            <div class = "col-md-4"></div>
+            <div class = "col-md-4">
+                <h4>Temperaturas limite</h4>
+            </div>
+            <div class = "col-md-4"></div>
+        </div>
+    
+        <form>
+             <div class="row top-buffer">
+                <div class = "col-md-4"></div>
+                <div class="col-md-2">
+                    <input id = "min_temp_id" type="number" class="form-control" placeholder="Temperatura minima (ºC)"
+                        oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0"
+                    >
+                </div>
+                <div class="col-md-2">
+                    <input id = "max_temp_id" type="number" class="form-control" placeholder="Temperatura maxima (ºC)"
+                        oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0"
+                    >
+                </div>
+                <div class = "col-md-4">
+                    <button class="btn btn-primary" type="button" id = "temp-range-confirm">Confirmar</button>
+                </div>
+            </div>
+        </form>
+
+        <div class = "row text-center top-buffer2">
+            <div class = "col-md-4"></div>
+            <div class = "col-md-4">
+                <h4>Tiempo entre muestras</h4>
+            </div>
+            <div class = "col-md-4"></div>
+        </div>
+
+        <div class = "row top-buffer">
+            <div class = "col-md-4"></div>
+                <div class="col-md-4">
+                    <input id = "muestras_id"type="number" class="form-control" placeholder="Tiempo entre muestras (segundos)"
+                    oninput= "javascript: if (this.value.length > 3) this.value = this.value.slice(0,3); if (this.value < 0) this.value = 0"
+                    >
+                </div>
+                <div class = "col-md-4">
+                    <button class="btn btn-primary" type="button" id = "muestras-confirm">Confirmar</button>
+                </div>
+        </div>
+
+        <div class = "row text-center top-buffer2">
+            <div class = "col-md-4"></div>
+            <div class = "col-md-4">
+                <h4>Correo para alertas</h4>
+            </div>
+            <div class = "col-md-4"></div>
+        </div>
+
+        <div class = "row top-buffer">
+            <div class = "col-md-4"></div>
+                <div class="col-md-4">
+                    <input id = "correo_id"type="text" class="form-control" placeholder="ejemplo@ejemplo.com"
+                    pattern="/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/"
+                    required>
+                </div>
+                <div class = "col-md-4">
+                    <button class="btn btn-primary" type="button" id = "email-confirm">Confirmar</button>
+                </div>
+        </div>
+
+        <div class = "row text-center top-buffer">
+            <div class = "col-md-4"></div>
+            <div class = "col-md-4">
+                <h4>Tiempo entre alertas</h4>
+            </div>
+            <div class = "col-md-4"></div>
+        </div>
+
+        <div class = "row top-buffer">
+            <div class = "col-md-4"></div>
+                <div class="col-md-4">
+                    <input id = "alerta_tiempo_id"type="number" class="form-control" placeholder="tiempo (minutos)"
+                    oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0">
+                </div>
+                <div class = "col-md-4">
+                    <button class="btn btn-primary" type="button" id = "alerta-tiempo-confirm">Confirmar</button>
+                </div>
+        </div>
+                  
+        <script>
+
+            let socket = io();
+
+            function validateEmail(inputText)
+            {
+                var mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+                return inputText.match(mailformat);                                            
+            }
+            
+            $("#correo_id").keyup(function(e){
+                
+                if(validateEmail($(this).val()) != null) {           
+                    $(this).removeClass('is-invalid')
+                    $(this).addClass('is-valid')
+                } else{
+                    $(this).removeClass('is-valid')
+                    $(this).addClass('is-invalid')
+                }
+
+            });
+
+            $('#email-confirm').click(function(){
+                let email = document.getElementById('correo_id').value;
+                if(validateEmail(email) != null) {
+                    socket.emit('config-email', {email: email});
+                }
+            });
+
+            $("#muestras_id").keyup(function(e){
+    
+                if($(this).val() >= 5) {           
+                    $(this).removeClass('is-invalid')
+                    $(this).addClass('is-valid')
+                } else{
+                    $(this).removeClass('is-valid')
+                    $(this).addClass('is-invalid')
+                }
+
+            });
+
+        
+
+            $('#muestras-confirm').click(function(){
+
+                if($("#muestras_id").val() >= 5){
+                    socket.emit('config-tiempo-muestras', {muestras_tiempo: $("#muestras_id").val()});
+                }else{
+                    $("#muestras_id").focus();
+                }
+            });
+
+            $('#temp-range-confirm').click(function(){
+
+                console.log("clicl")
+
+               let min_temp = parseInt($("#min_temp_id").val());
+               let max_temp = parseInt($("#max_temp_id").val());
+
+               let min_temp_ok = false;
+               let max_temp_ok = false;
+                
+                if($("#min_temp_id").val().length == 0 || min_temp > max_temp){               
+                    $("#min_temp_id").focus();
+                    $("#min_temp_id").removeClass('is-valid');
+                    $("#min_temp_id").addClass('is-invalid');
+                } else{
+                    $("#min_temp_id").removeClass('is-invalid');
+                    $("#min_temp_id").addClass('is-valid');
+                    min_temp_ok = true;
+                }
+
+                if($("#max_temp_id").val().length == 0 ||  min_temp > max_temp ){
+                    $("#max_temp_id").focus();
+                    $("#max_temp_id").removeClass('is-valid');
+                    $("#max_temp_id").addClass('is-invalid');
+                }else{
+                    $("#max_temp_id").removeClass('is-invalid');
+                    $("#max_temp_id").addClass('is-valid');
+                    max_temp_ok = true;
+                }
+
+                if(min_temp_ok == true && max_temp_ok == true) {
+                    console.log("envio temperatura")
+                    socket.emit('config-temp-range', {min_temp: min_temp, max_temp: max_temp});
+                }
+
+
+            });
+
+            $('#alerta-tiempo-confirm').click(function(){   
+
+                let tiempo_alerta = parseInt($("#alerta_tiempo_id").val());
+
+                if(tiempo_alerta > 0){
+                    $("#alerta_tiempo_id").removeClass('is-invalid');
+                    $("#alerta_tiempo_id").addClass('is-valid');
+
+                    socket.emit('config-tiempo-alerta', {alerta_tiempo: tiempo_alerta});
+
+                }else{
+                    $("#alerta_tiempo_id").removeClass('is-valid');
+                    $("#alerta_tiempo_id").addClass('is-invalid');
+                }
+            });
+    
+    
+        </script>
+           
+    
+        <div class = "row top-buffer"></div>
+        <div class = "row top-buffer"></div>
+        <div class = "row top-buffer"></div>
+        <div class = "row top-buffer"></div>
+        <div class = "row top-buffer"></div>
+        <div class = "row top-buffer2"></div>
+        <div class = "row top-buffer2"></div>
+        <div class = "row top-buffer2"></div>
+        <div class = "row top-buffer2"></div>
+        <div class = "row top-buffer3"></div>
+
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="#">
+              <img src="/client/resources/ort_logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
+              Universidad ORT Uruguay
+            </a>
+            <span class="navbar-text">
+                Diego Marvid y Valentin Otte
+              </span>
+          </nav>
+
+    
+           
+        
+
+
+    </div>
+
+
+</body>
+
+</html>
