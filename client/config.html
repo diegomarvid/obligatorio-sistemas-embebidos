@@ -19,6 +19,13 @@
 
     <script src="/client/lib/notiflix-aio.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap-extended.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/colors.min.css">
+<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap.min.css">
+<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+
     <title>Obligatorio 1</title>
 
     <style type="text/css"> 
@@ -72,6 +79,83 @@
             </div>
             <div class = "col-md-4"></div>
         </div>
+
+        <div class="grey-bg container-fluid">
+            <section id="minimal-statistics">
+              <div class="row">
+                <div class="col-12 mt-3 mb-1">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xl-3 col-sm-6 col-12"> 
+                  <div class="card">
+                    <div class="card-content">
+                      <div class="card-body">
+                        <div class="media d-flex">
+                          <div class="align-self-center">
+                            <i class="material-icons">face</i>
+                          </div>
+                          <div class="media-body text-right">
+                            <h3>278</h3>
+                            <span>New Posts</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-12">
+                  <div class="card">
+                    <div class="card-content">
+                      <div class="card-body">
+                        <div class="media d-flex">
+                          <div class="align-self-center">
+                            <i class="material-icons">timelapse</i>
+                          </div>
+                          <div class="media-body text-right">
+                            <h3>5</h3>
+                            <span>Tiempo de muestreo (segundos)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-12">
+                  <div class="card">
+                    <div class="card-content">
+                      <div class="card-body">
+                        <div class="media d-flex">
+                          <div class="align-self-center">
+                            <i class="material-icons">email</i>
+                          </div>
+                          <div class="media-body text-right">
+                            <h3>diegomarvid99@gmail.com</h3>
+                            <span>Email de destino</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-12">
+                  <div class="card">
+                    <div class="card-content">
+                      <div class="card-body">
+                        <div class="media d-flex">
+                          <div class="align-self-center">
+                            <i class="material-icons">alarm</i>
+                          </div>
+                          <div class="media-body text-right">
+                            <h3>60</h3>
+                            <span>Tiempo entre alarmas (minutos)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
         <div class = "row text-center top-buffer2">
             <div class = "col-md-4"></div>
@@ -163,6 +247,11 @@
 
             let socket = io();
 
+            Notiflix.Notify.Init({
+                position: 'right-bottom'
+            });
+
+
             function validateEmail(inputText)
             {
                 var mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
@@ -185,6 +274,13 @@
                 let email = document.getElementById('correo_id').value;
                 if(validateEmail(email) != null) {
                     socket.emit('config-email', {email: email});
+
+                    Notiflix.Report.Success(
+                        'Exito',
+                        `Se actualizo de forma correcta el email de destino a: ${email}`,
+                        'Aceptar'
+                    );
+
                 } else{
                     $('#correo_id').focus();
                     Notiflix.Notify.Failure('Correo invalido');
@@ -227,34 +323,39 @@
                let min_temp = parseInt($("#min_temp_id").val());
                let max_temp = parseInt($("#max_temp_id").val());
 
-               let min_temp_ok = false;
-               let max_temp_ok = false;
-                
-                if($("#min_temp_id").val().length == 0 || min_temp >= max_temp){               
+                if($("#min_temp_id").val().length == 0){               
                     $("#min_temp_id").focus();
                     $("#min_temp_id").removeClass('is-valid');
                     $("#min_temp_id").addClass('is-invalid');
-                } else{
-                    $("#min_temp_id").removeClass('is-invalid');
-                    $("#min_temp_id").addClass('is-valid');
-                    min_temp_ok = true;
-                }
-
-                if($("#max_temp_id").val().length == 0 ||  min_temp >= max_temp ){
+                    Notiflix.Notify.Failure('Debe ingresar una temperatura minima');
+                } else if($("#max_temp_id").val().length == 0){
                     $("#max_temp_id").focus();
                     $("#max_temp_id").removeClass('is-valid');
                     $("#max_temp_id").addClass('is-invalid');
-                }else{
+                    Notiflix.Notify.Failure('Debe ingresar una temperatura maxima');
+                } else if(min_temp >= max_temp){
+                    $("#min_temp_id").focus();
+                    $("#min_temp_id").removeClass('is-valid');
+                    $("#min_temp_id").addClass('is-invalid');
+                    $("#max_temp_id").removeClass('is-valid');
+                    $("#max_temp_id").addClass('is-invalid');
+                    Notiflix.Notify.Failure('La temperatura maxima debe ser mayor a la minima');
+                }else{                             
+                    $("#min_temp_id").removeClass('is-invalid');
+                    $("#min_temp_id").addClass('is-valid');
                     $("#max_temp_id").removeClass('is-invalid');
                     $("#max_temp_id").addClass('is-valid');
-                    max_temp_ok = true;
-                }
 
-                if(min_temp_ok == true && max_temp_ok == true) {
                     console.log("envio temperatura")
                     socket.emit('config-temp-range', {min_temp: min_temp, max_temp: max_temp});
-                }
 
+                    Notiflix.Report.Success(
+                        'Exito',
+                        `Se actualizo de forma correcta la temperatura minima a ${min_temp} y la temperatura maxima a ${max_temp}`,
+                        'Aceptar'
+                    );
+
+                }
 
             });
 
@@ -267,6 +368,12 @@
                     $("#alerta_tiempo_id").addClass('is-valid');
 
                     socket.emit('config-tiempo-alerta', {alerta_tiempo: tiempo_alerta});
+
+                    Notiflix.Report.Success(
+                        'Exito',
+                        `Se actualizo de forma correcta el tiempo entre alertas a: ${tiempo_alerta}`,
+                        'Aceptar'
+                    );
 
                 }else{
                     $("#alerta_tiempo_id").removeClass('is-valid');
