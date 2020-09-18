@@ -72,7 +72,7 @@ io.sockets.on('connection', function(socket) {
 
         db.all('SELECT * FROM test WHERE date BETWEEN ? AND ?', [data.startDate, data.endDate], function(err, rows){
 
-            if(rows != null) {
+            if(rows != null && rows.length > 0) {
 
                 let date = new Date(rows[0].date);
                 let date_aux = date;
@@ -81,6 +81,10 @@ io.sockets.on('connection', function(socket) {
                 let contador = 1;
                 let obj;
                 let temperaturas_promedio = [];
+
+                if(data.download == true){
+                    socket.emit('tempCSV', {temp: rows});
+                }
 
                 for(let i = 0; i < rows.length; i++){
 
@@ -133,8 +137,8 @@ io.sockets.on('connection', function(socket) {
 
                 }
 
-                socket.emit('tempUpdate', temperaturas_promedio)
-
+                socket.emit('tempUpdate', temperaturas_promedio);
+                
             }
             
         });

@@ -18,6 +18,57 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
+function convertArrayOfObjectsToCSV(args) {  
+    var result, ctr, keys, columnDelimiter, lineDelimiter, data;
+
+    data = args.data || null;
+    if (data == null || !data.length) {
+        return null;
+    }
+
+    columnDelimiter = args.columnDelimiter || ',';
+    lineDelimiter = args.lineDelimiter || '\n';
+
+    keys = Object.keys(data[0]);
+
+    result = '';
+    result += keys.join(columnDelimiter);
+    result += lineDelimiter;
+
+    data.forEach(function(item) {
+        ctr = 0;
+        keys.forEach(function(key) {
+            if (ctr > 0) result += columnDelimiter;
+
+            result += item[key];
+            ctr++;
+        });
+        result += lineDelimiter;
+    });
+
+    return result;
+}
+
+function downloadCSV(args, arr) {  
+    var data, filename, link;
+    var csv = convertArrayOfObjectsToCSV({
+        data: arr
+    });
+    if (csv == null) return;
+
+    filename = args.filename || 'export.csv';
+
+    if (!csv.match(/^data:text\/csv/i)) {
+        csv = 'data:text/csv;charset=utf-8,' + csv;
+    }
+    data = encodeURI(csv);
+
+    link = document.createElement('a');
+    link.setAttribute('href', data);
+    link.setAttribute('download', filename);
+    link.click();
+}
+
 document.onkeydown = function (event) {
 
 
@@ -45,6 +96,10 @@ socket.on('logInResponse', function(data) {
 
 });
 
+socket.on('tempCSV', function(data){
+    downloadCSV({ filename: "temperaturas.csv" }, data.temp);
+})
+
 $('input[name="datetimes"]').on('apply.daterangepicker', function(ev, picker) {
     start_date = picker.startDate.format('YYYY-MM-DD H:mm:00');
     end_date = picker.endDate.format('YYYY-MM-DD H:mm:00');    
@@ -52,7 +107,8 @@ $('input[name="datetimes"]').on('apply.daterangepicker', function(ev, picker) {
 });
 
 $('#date-range-confirm').click(function(){
-    socket.emit('dateRange', {startDate: start_date, endDate: end_date});
+    let download = $('#downloadCheck').is(":checked");
+    socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download});
 })
 
 google.charts.load('current', {'packages':['gauge']});
@@ -104,8 +160,6 @@ let n = 0;
 let temperatures = [];
 let hours = [];
 socket.on('tempUpdate', function(data) {
-
-    console.log(data)
 
     temperatures = [];
     hours = [];
