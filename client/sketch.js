@@ -105,13 +105,14 @@ let temperatures = [];
 let hours = [];
 socket.on('tempUpdate', function(data) {
 
+    console.log(data)
 
     temperatures = [];
     hours = [];
    
-    for (let i in data.temp) {
-        temperatures.push(data.temp[i].temperature);
-        str = data.temp[i].date.substring(0,19);
+    for (let i in data) {
+        temperatures.push(data[i].temperature);
+        str = data[i].date.substring(0,19);
         hours.push(str)
         
     }

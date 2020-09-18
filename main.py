@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 import threading
+import random
 
 from sqlite3 import Error
 
@@ -8,7 +9,7 @@ from datetime import datetime
 
 try:
 
-    con = sqlite3.connect('./db/temp.db')
+    con = sqlite3.connect('./db/temp.db', check_same_thread=False)
 
     print("Connection is established")
 
@@ -65,10 +66,9 @@ def sql_fetch_last(con):
 
 tempii = 50
 
-def printit():
-  sql_update(con,tempii)
-  tempii = tempii + 0.1
-  threading.Timer(5.0, printit).start()
+def loop():
+  threading.Timer(5.0, loop).start()
+  sql_update(con, random.randint(20,70))
   
 
-printit()
+loop()

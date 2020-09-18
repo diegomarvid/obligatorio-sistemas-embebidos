@@ -1,6 +1,7 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
-const CryptoJS = require("crypto-js")
+const CryptoJS = require("crypto-js");
+const { rootCertificates } = require('tls');
 
 let MAX_TEMP = 90;
 let MIN_TEMP = 5;
@@ -8,11 +9,12 @@ let MIN_TEMP = 5;
 const USER = 'root';
 const KEY = 'admin';
 
+let tiempo_muestreo = 5;
+
 let config_encrypt_str = CryptoJS.AES.encrypt(USER,KEY).toString();
 
 //Sacar los + y / para no tener rutas erroneas
-config_encrypt_str = config_encrypt_str.replace('+', '');
-config_encrypt_str = config_encrypt_str.replace('/', '');
+config_encrypt_str = config_encrypt_str.split('+').join('');
 
 let config_route = '/' + config_encrypt_str;
 console.log(config_route)
@@ -66,8 +68,75 @@ io.sockets.on('connection', function(socket) {
     
     socket.on('dateRange', function(data){
 
+
+
         db.all('SELECT * FROM test WHERE date BETWEEN ? AND ?', [data.startDate, data.endDate], function(err, rows){
-            socket.emit('tempUpdate', {temp: rows});
+
+            if(rows != null) {
+
+                let date = new Date(rows[0].date);
+                let date_aux = date;
+                let suma_temp = 0;
+                let promedio_temp = 0;
+                let contador = 1;
+                let obj;
+                let temperaturas_promedio = [];
+
+                for(let i = 0; i < rows.length; i++){
+
+                    if(date_aux - date < 3600*1000){
+
+                        if(date_aux - date != 0){
+                            contador++;
+                        }
+
+                        if(i != rows.length - 1){
+                            date_aux = new Date(rows[i+1].date);
+                        }
+                        //Estoy en el ultimo y no termino la hora 
+                        else{
+                            date_aux = date;
+                            suma_temp += rows[i].temperature;
+                            promedio_temp = suma_temp / contador;
+                            //Primer caso de borde
+                            if(i - contador == -1){
+                                obj = rows[i - contador + 1];
+                            } else if(i - contador -1 != -1){
+                                obj = rows[i - contador - 1];
+                            }                          
+                            else{
+                                obj = rows[i - contador];
+                            }
+                            obj.temperature = promedio_temp;
+                            temperaturas_promedio.push(obj);
+                        }
+
+                        suma_temp += rows[i].temperature;
+                    
+                    } 
+                    else{
+                        date = date_aux;
+                        promedio_temp = suma_temp / contador;
+
+                        //Primer caso de borde
+                        if(i - contador -1 != -1){
+                            obj = rows[i - contador - 1];
+                        } else{
+                            obj = rows[i - contador];
+                        }
+                        
+                        obj.temperature = promedio_temp;
+                        temperaturas_promedio.push(obj);
+                        contador = 1;
+                        suma_temp = 0;
+                    }
+
+                }
+
+                socket.emit('tempUpdate', temperaturas_promedio)
+
+            }
+            
         });
     });
 
@@ -98,13 +167,24 @@ io.sockets.on('connection', function(socket) {
 
 let socket;
 
+let sql = "SELECT rowid FROM test WHERE date > '2020-09-11 19:40:00' "
+
+// db.all(sql, function(err,rows){
+//     console.log(rows)
+// })
+
 setInterval(function() {
 
     db.all('SELECT * FROM test ORDER BY date DESC LIMIT 1', function(err, rows){
+
+        if(err != null) console.log(err);
         
         for(let i in SOCKET_LIST){
             socket = SOCKET_LIST[i];
-            socket.emit('lastTemp', {temp: rows[0], min_temp: MIN_TEMP, max_temp: MAX_TEMP} );
+
+            if(rows != null){
+                socket.emit('lastTemp', {temp: rows[0], min_temp: MIN_TEMP, max_temp: MAX_TEMP} );
+            }
         }
     
     });
