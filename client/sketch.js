@@ -18,6 +18,14 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
+function wait(ms){
+    var start = new Date().getTime();
+    var end = start;
+    while(end < start + ms) {
+      end = new Date().getTime();
+   }
+ }
+
 function convertArrayOfObjectsToCSV(args) {  
     var result, ctr, keys, columnDelimiter, lineDelimiter, data;
 
@@ -73,25 +81,40 @@ document.onkeydown = function (event) {
 
 
     //Enter username
-    if(event.keyCode === 13 && loginState) {
-        username_text = document.getElementById('username').value;
-        if(username_text.length <= 2) return;
-        socket.emit('logIn', {username: username_text});
-    }
+    // if(event.keyCode === 13 && loginState) {
+    //     username_text = document.getElementById('username').value;
+    //     if(username_text.length <= 2) return;
+    //     socket.emit('logIn', {username: username_text});
+    // }
 
+}
+
+function login(){
+    let username = $('#username_id').val();
+    let password = $('#password_id').val();
+    console.log(username, password)
+    socket.emit('logIn', {username: username, password: password});
+    return;
 }
 
 socket.on('logInResponse', function(data) {
     if(data.success) {
-        loginState = false;
-        loginDiv.style.display = 'none';
-        containerDiv.style.display = 'inline';
-        document.getElementById('config-id').setAttribute("href",data.config_link);
-        TEMP_MIN = data.min_temp;
-        TEMP_MAX = data.max_temp;
-        console.log(TEMP_MIN, TEMP_MAX);
+        Notiflix.Loading.Standard();
+        Notiflix.Loading.Remove(1000);
+
+        setTimeout(function(){
+            loginState = false;
+            loginDiv.style.display = 'none';
+            containerDiv.style.display = 'inline';
+            document.getElementById('config-id').setAttribute("href",data.config_link);
+            TEMP_MIN = data.min_temp;
+            TEMP_MAX = data.max_temp;
+            console.log(TEMP_MIN, TEMP_MAX);
+        }, 1000)
+        
     } else{
-        alert('log in unsuccessful');
+        Notiflix.Notify.Failure('Usuario o contraseña invalido');
+        $('#username_id').focus();
     }
 
 });

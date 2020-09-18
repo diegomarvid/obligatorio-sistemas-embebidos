@@ -58,7 +58,7 @@ io.sockets.on('connection', function(socket) {
     console.log(`socket connection from client ${socket.id}`);
 
     socket.on('logIn', function(data) {
-        if(data.username == USER){
+        if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str, max_temp: MAX_TEMP, min_temp: MIN_TEMP});
         } else{
             socket.emit('logInResponse', {success: false, config_link: ""});

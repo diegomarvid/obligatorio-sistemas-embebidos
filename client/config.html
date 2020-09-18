@@ -17,6 +17,8 @@
     
     <script src="https://cdn.rawgit.com/PascaleBeier/bootstrap-validate/v2.2.0/dist/bootstrap-validate.js"></script>
 
+    <script src="/client/lib/notiflix-aio.js"></script>
+
     <title>Obligatorio 1</title>
 
     <style type="text/css"> 
@@ -183,6 +185,9 @@
                 let email = document.getElementById('correo_id').value;
                 if(validateEmail(email) != null) {
                     socket.emit('config-email', {email: email});
+                } else{
+                    $('#correo_id').focus();
+                    Notiflix.Notify.Failure('Correo invalido');
                 }
             });
 
@@ -204,8 +209,14 @@
 
                 if($("#muestras_id").val() >= 5){
                     socket.emit('config-tiempo-muestras', {muestras_tiempo: $("#muestras_id").val()});
+                    Notiflix.Report.Success(
+                        'Exito',
+                        `Se actualizo de forma correcta el tiempo de muestreo a: ${$("#muestras_id").val()}`,
+                        'Aceptar'
+                    );
                 }else{
                     $("#muestras_id").focus();
+                    Notiflix.Notify.Failure('El tiempo entre muestras debe ser mayor a 5 segundos');
                 }
             });
 
@@ -219,7 +230,7 @@
                let min_temp_ok = false;
                let max_temp_ok = false;
                 
-                if($("#min_temp_id").val().length == 0 || min_temp > max_temp){               
+                if($("#min_temp_id").val().length == 0 || min_temp >= max_temp){               
                     $("#min_temp_id").focus();
                     $("#min_temp_id").removeClass('is-valid');
                     $("#min_temp_id").addClass('is-invalid');
@@ -229,7 +240,7 @@
                     min_temp_ok = true;
                 }
 
-                if($("#max_temp_id").val().length == 0 ||  min_temp > max_temp ){
+                if($("#max_temp_id").val().length == 0 ||  min_temp >= max_temp ){
                     $("#max_temp_id").focus();
                     $("#max_temp_id").removeClass('is-valid');
                     $("#max_temp_id").addClass('is-invalid');
@@ -260,6 +271,8 @@
                 }else{
                     $("#alerta_tiempo_id").removeClass('is-valid');
                     $("#alerta_tiempo_id").addClass('is-invalid');
+                    $("#alerta_tiempo_id").focus();
+                    Notiflix.Notify.Failure('Debe ingresar un tiempo valido');
                 }
             });
     
