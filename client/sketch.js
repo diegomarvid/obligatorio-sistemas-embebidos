@@ -133,7 +133,15 @@ socket.on('tempUpdate', function(data) {
             },
             legend:{
                 display: false
-            }
+            },
+            scales: {
+                yAxes: [{
+                  scaleLabel: {
+                    display: true,
+                    labelString: 'Temperatura (°C)'
+                  }
+                }]
+              }     
         }
     });
     
