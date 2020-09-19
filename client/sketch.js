@@ -108,6 +108,7 @@ socket.on('logInResponse', function(data) {
         Notiflix.Loading.Remove(1000);
 
         setTimeout(function(){
+            $("body").css("background","#DCDCDC");
             loginState = false;
             loginDiv.style.display = 'none';
             containerDiv.style.display = 'inline';
