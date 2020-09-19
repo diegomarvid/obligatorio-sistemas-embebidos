@@ -3,8 +3,8 @@ const sqlite3 = require('sqlite3').verbose();
 const CryptoJS = require("crypto-js");
 const { rootCertificates } = require('tls');
 
-let MAX_TEMP = 90;
-let MIN_TEMP = 5;
+let MAX_TEMP = 50;
+let MIN_TEMP = 40;
 
 const USER = 'root';
 const KEY = 'admin';
@@ -14,7 +14,8 @@ const CONFIG = {
     TEMP_MAX: 2,
     TIEMPO_MUESTREO: 3,
     EMAIL: 4,
-    TIEMPO_ALARMAS: 5
+    TIEMPO_ALARMAS: 5,
+    ESTADO_ALARMA: 6
 };
 
 let tiempo_muestreo = 5;
@@ -81,10 +82,21 @@ io.sockets.on('connection', function(socket) {
         }
     })
     
-    socket.once('disconnect', function () {
+    socket.on('disconnect', function () {
         delete SOCKET_LIST[socket.id];
-      });
+    });
 
+    socket.on('activar-alarma', function(data){
+
+        let sql = 'UPDATE config SET config = (?) WHERE rowid = ';
+       
+        db.run(sql + CONFIG.ESTADO_ALARMA, [data.estado], (err) => {
+            if(err){
+                return console.log(err);
+            }
+        });
+
+    })
 
     socket.on('dateRange', function(data){
 
@@ -194,7 +206,7 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-let socket;
+
 
 let sql = "SELECT rowid FROM test WHERE date > '2020-09-11 19:40:00' "
 
@@ -202,38 +214,44 @@ let sql = "SELECT rowid FROM test WHERE date > '2020-09-11 19:40:00' "
 //     console.log(rows)
 // })
 
+
+let socket;
+let last_temp;
+let config_rows;
+
 setInterval(function() {
 
-    for(let i in SOCKET_LIST){
-        socket = SOCKET_LIST[i];
-
-        db.all('SELECT * from config', function(err, rows){
-            if(err){
-                console.log(err);
-            }else{
-                socket.emit('config-update', {rows: rows});
-            }
-        })
-
-        // socket.emit('config-update', {tiempo_muestreo: tiempo_muestreo, tiempo_alerta: tiempo_alerta, 
-                                    //   email: email, temp_min: MIN_TEMP, temp_max: MAX_TEMP});
-    }
-
+    db.all('SELECT * from config', function(err, rows){
+        if(err){
+            console.log(err);
+        }else{
+            config_rows = rows;         
+            MIN_TEMP = rows[0].config;
+            MAX_TEMP = rows[1].config;
+        }
+    });
 
     db.all('SELECT * FROM test ORDER BY date DESC LIMIT 1', function(err, rows){
 
-        if(err != null) console.log(err);
-        
-        for(let i in SOCKET_LIST){
-            socket = SOCKET_LIST[i];
-
-            if(rows != null){
-                socket.emit('lastTemp', {temp: rows[0], min_temp: MIN_TEMP, max_temp: MAX_TEMP} );
-            }
+        if(err) {
+            console.log(err);
+        } else{
+            last_temp = rows[0];
         }
-    
+
     });
+ 
+    for(let i in SOCKET_LIST){
+        socket = SOCKET_LIST[i];
+        socket.emit('config-update', {rows: config_rows});
+        if(last_temp != null){
+            socket.emit('lastTemp', {temp: last_temp, min_temp: MIN_TEMP, max_temp: MAX_TEMP} );
+        }
+    }
+
+
+   
        
 
-}, 1000);
+}, 800);
 

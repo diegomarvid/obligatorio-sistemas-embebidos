@@ -18,6 +18,23 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
+socket.on('config-update', function(data){
+
+    console.log('actualizando')
+
+    let estado = data.rows[5].config;
+
+    if(estado == 1){
+        estado = true;
+        $('#alarma-txt-id').text('Alarma activada');
+    } else{
+        estado = false;
+        $('#alarma-txt-id').text('Alarma desactivada');
+    }
+
+    $('#alarma-id').prop('checked',estado);
+})
+
 function wait(ms){
     var start = new Date().getTime();
     var end = start;
@@ -122,6 +139,15 @@ $('#date-range-confirm').click(function(){
     socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download});
 })
 
+
+
+$('#alarma-id').click(function(){
+    let estado = $('#alarma-id').is(':checked');
+    socket.emit('activar-alarma', {estado: estado});
+});
+
+
+
 google.charts.load('current', {'packages':['gauge']});
 google.charts.setOnLoadCallback(drawChart);
 
@@ -144,6 +170,8 @@ function drawChart() {
         temp_actual = data.temp.temperature;
         TEMP_MIN = data.min_temp;
         TEMP_MAX = data.max_temp;
+
+        console.log(TEMP_MIN, TEMP_MAX)
 
         options = {
             width: 220, height: 220,
@@ -212,8 +240,7 @@ socket.on('tempUpdate', function(data) {
     
 });
 
-                       
-
+              
 
 
 
