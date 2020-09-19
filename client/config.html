@@ -409,12 +409,13 @@
     
 
             socket.on('config-update', function(data){
-              $('#h-tiempo-muestreo').text(data.tiempo_muestreo + ' s');
-              $('#h-tiempo-alarma').text(data.tiempo_alerta + ' m');
-              $('#h-email').text(data.email);
-              $('#h-temp-min').text(data.temp_min + ' ºC');
-              $('#h-temp-max').text(data.temp_max + ' ºC');
-            })
+              console.log(data.)
+              $('#h-tiempo-muestreo').text(data.rows[2].config + ' s');
+              $('#h-tiempo-alarma').text(data.rows[4].config + ' m');
+              $('#h-email').text(data.rows[3].config);
+              $('#h-temp-min').text(data.rows[0].config + ' ºC');
+              $('#h-temp-max').text(data.rows[1].config + ' ºC');
+            });
 
  
     

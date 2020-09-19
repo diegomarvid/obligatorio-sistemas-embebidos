@@ -77,18 +77,6 @@ function downloadCSV(args, arr) {
     link.click();
 }
 
-document.onkeydown = function (event) {
-
-
-    //Enter username
-    // if(event.keyCode === 13 && loginState) {
-    //     username_text = document.getElementById('username').value;
-    //     if(username_text.length <= 2) return;
-    //     socket.emit('logIn', {username: username_text});
-    // }
-
-}
-
 function login(){
     let username = $('#username_id').val();
     let password = $('#password_id').val();

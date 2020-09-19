@@ -9,6 +9,14 @@ let MIN_TEMP = 5;
 const USER = 'root';
 const KEY = 'admin';
 
+const CONFIG = {
+    TEMP_MIN: 1,
+    TEMP_MAX: 2,
+    TIEMPO_MUESTREO: 3,
+    EMAIL: 4,
+    TIEMPO_ALARMAS: 5
+};
+
 let tiempo_muestreo = 5;
 let tiempo_alerta = 5;
 let email = 'diegomarvid99@gmail.com';
@@ -19,7 +27,6 @@ let config_encrypt_str = CryptoJS.AES.encrypt(USER,KEY).toString();
 config_encrypt_str = config_encrypt_str.split('+').join('');
 
 let config_route = '/' + config_encrypt_str;
-console.log(config_route)
 
 const app = express();
 
@@ -44,7 +51,7 @@ SOCKET_LIST = {};
 
 let io = require('socket.io')(serv, {});
 
-let db = new sqlite3.Database('./db/temp.db', sqlite3.OPEN_READONLY, (err) => {
+let db = new sqlite3.Database('./db/temp.db', (err) => {
     if (err) {
       console.error(err.message);
     }
@@ -57,8 +64,6 @@ io.sockets.on('connection', function(socket) {
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
 
-    console.log(`socket connection from client ${socket.id}`);
-
     socket.on('logIn', function(data) {
         if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str, max_temp: MAX_TEMP, min_temp: MIN_TEMP});
@@ -68,8 +73,13 @@ io.sockets.on('connection', function(socket) {
         
     });
 
-    socket.emit('config-update', {tiempo_muestreo: tiempo_muestreo, tiempo_alerta: tiempo_alerta, 
-        email: email, temp_min: MIN_TEMP, temp_max: MAX_TEMP});
+    db.all('SELECT * from config', function(err, rows){
+        if(err){
+            console.log(err);
+        }else{ 
+            socket.emit('config-update', {rows: rows});
+        }
+    })
     
     socket.once('disconnect', function () {
         delete SOCKET_LIST[socket.id];
@@ -96,9 +106,15 @@ io.sockets.on('connection', function(socket) {
                     socket.emit('tempCSV', {temp: rows});
                 }
 
+                console.log(rows)
+
+                let termino_hora = false;
+
                 for(let i = 0; i < rows.length; i++){
 
                     if(date_aux - date < 3600*1000){
+
+                        termino_hora = false;
 
                         if(date_aux - date != 0){
                             contador++;
@@ -129,6 +145,9 @@ io.sockets.on('connection', function(socket) {
                     
                     } 
                     else{
+
+                        termino_hora = true;
+                        
                         date = date_aux;
                         promedio_temp = suma_temp / contador;
 
@@ -156,21 +175,50 @@ io.sockets.on('connection', function(socket) {
 
     //----------------Sockets de configuracion---------------------//
 
+    let sql = 'UPDATE config SET config = (?) WHERE rowid = ';
+
     socket.on('config-temp-range', function(data){
-        MIN_TEMP = data.min_temp;
-        MAX_TEMP = data.max_temp;
+        
+        db.run(sql + CONFIG.TEMP_MIN, [data.min_temp], (err) => {
+            if(err){
+                return console.log(err);
+            }
+        });
+
+        db.run(sql + CONFIG.TEMP_MAX, [data.max_temp], (err) => {
+            if(err){
+                return console.log(err);
+            }
+        });
+
+
     });
 
     socket.on('config-tiempo-muestras', function(data){
-        tiempo_muestreo = data.muestras_tiempo;
+        
+        db.run(sql + CONFIG.TIEMPO_MUESTREO, [data.muestras_tiempo], (err) => {
+            if(err){
+                return console.log(err);
+            }
+        });
+
+
     });
 
     socket.on('config-email', function(data){
-        email = data.email;
+        db.run(sql + CONFIG.EMAIL, [data.email], (err) => {
+            if(err){
+                return console.log(err);
+            }
+        });
     });
 
     socket.on('config-tiempo-alerta', function(data){
-        tiempo_alerta = data.alerta_tiempo;
+        db.run(sql + CONFIG.TIEMPO_ALARMAS, [data.alerta_tiempo], (err) => {
+            if(err){
+                return console.log(err);
+            }
+        });
     });
     
 
@@ -188,9 +236,17 @@ setInterval(function() {
 
     for(let i in SOCKET_LIST){
         socket = SOCKET_LIST[i];
-        console.log(i)
-        socket.emit('config-update', {tiempo_muestreo: tiempo_muestreo, tiempo_alerta: tiempo_alerta, 
-                                      email: email, temp_min: MIN_TEMP, temp_max: MAX_TEMP});
+
+        db.all('SELECT * from config', function(err, rows){
+            if(err){
+                console.log(err);
+            }else{
+                socket.emit('config-update', {rows: rows});
+            }
+        })
+
+        // socket.emit('config-update', {tiempo_muestreo: tiempo_muestreo, tiempo_alerta: tiempo_alerta, 
+                                    //   email: email, temp_min: MIN_TEMP, temp_max: MAX_TEMP});
     }
 
 
