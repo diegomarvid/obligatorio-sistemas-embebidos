@@ -98,7 +98,7 @@ io.sockets.on('connection', function(socket) {
                 let date_aux = date;
                 let suma_temp = 0;
                 let promedio_temp = 0;
-                let contador = 1;
+                let contador = 0;
                 let obj;
                 let temperaturas_promedio = [];
 
@@ -106,66 +106,36 @@ io.sockets.on('connection', function(socket) {
                     socket.emit('tempCSV', {temp: rows});
                 }
 
-                console.log(rows)
+                let i = 0;
 
-                let termino_hora = false;
+                while(i < rows.length){
 
-                for(let i = 0; i < rows.length; i++){
+                    while(date_aux - date < 3600*1000 && i+contador < rows.length){
 
-                    if(date_aux - date < 3600*1000){
+                        suma_temp += rows[i+contador].temperature;
 
-                        termino_hora = false;
+                        contador++;
 
-                        if(date_aux - date != 0){
-                            contador++;
+                        if( i+contador <= rows.length-1){
+                            date_aux = new Date(rows[i+contador].date);
                         }
-
-                        if(i != rows.length - 1){
-                            date_aux = new Date(rows[i+1].date);
-                        }
-                        //Estoy en el ultimo y no termino la hora 
-                        else{
-                            date_aux = date;
-                            suma_temp += rows[i].temperature;
-                            promedio_temp = suma_temp / contador;
-                            //Primer caso de borde
-                            if(i - contador == -1){
-                                obj = rows[i - contador + 1];
-                            } else if(i - contador -1 != -1){
-                                obj = rows[i - contador - 1];
-                            }                          
-                            else{
-                                obj = rows[i - contador];
-                            }
-                            obj.temperature = promedio_temp;
-                            temperaturas_promedio.push(obj);
-                        }
-
-                        suma_temp += rows[i].temperature;
-                    
-                    } 
-                    else{
-
-                        termino_hora = true;
-                        
-                        date = date_aux;
-                        promedio_temp = suma_temp / contador;
-
-                        //Primer caso de borde
-                        if(i - contador -1 != -1){
-                            obj = rows[i - contador - 1];
-                        } else{
-                            obj = rows[i - contador];
-                        }
-                        
-                        obj.temperature = promedio_temp;
-                        temperaturas_promedio.push(obj);
-                        contador = 1;
-                        suma_temp = 0;
                     }
 
-                }
 
+
+                    promedio_temp = suma_temp / contador;
+
+                    obj = rows[i]
+                    obj.temperature = promedio_temp;
+                    temperaturas_promedio.push(obj);
+
+                    date = date_aux;
+                    i += contador;
+                    contador=0;
+                    suma_temp=0;
+
+                }
+               
                 socket.emit('tempUpdate', temperaturas_promedio);
                 
             }
