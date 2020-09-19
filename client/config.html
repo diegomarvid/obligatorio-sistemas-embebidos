@@ -20,10 +20,10 @@
     <script src="/client/lib/notiflix-aio.js"></script>
 
     <link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap-extended.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-    rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/colors.min.css">
-<link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+   
+    <!-- <link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/colors.min.css"> -->
+<!-- <link rel="stylesheet" type="text/css" href="https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/css/bootstrap.min.css"> -->
 <link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
 
     <title>Obligatorio 1</title>
@@ -46,6 +46,8 @@
         .top-buffer { margin-top:20px; }
         .top-buffer2 { margin-top:40px; }
         .top-buffer3 { margin-top:5px; }
+
+        .material-icons.md-36 { font-size: 36px; }
       
 
         * {
@@ -87,50 +89,72 @@
                 </div>
               </div>
               <div class="row">
-                <div class="col-xl-3 col-sm-6 col-12"> 
+                <div class="col-xl-2"></div>
+                <div class="col-xl-4 col-sm-6 col-12">
+                    <div class="card">
+                      <div class="card-content">
+                        <div class="card-body">
+                          <div class="media d-flex">
+                            <div class="align-self-center">
+                              <i class="material-icons md-36">remove</i>
+                            </div>
+                            <div class="media-body text-right">
+                              <h3 id = "h-temp-min">20 ºC</h3>
+                              <span>Temperatura minima</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+            
+                  <div class="col-xl-4 col-sm-6 col-12">
+                    <div class="card">
+                      <div class="card-content">
+                        <div class="card-body">
+                          <div class="media d-flex">
+                            <div class="align-self-center">
+                              <i class="material-icons md-36">add</i>
+                            </div>
+                            <div class="media-body text-right">
+                              <h3 id = "h-temp-max">80 ºC</h3>
+                              <span>Temperatura maxima</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+              <div class="row">
+                <div class="col-xl-2"></div>
+                <div class="col-xl-2 col-sm-12 col-12">
                   <div class="card">
                     <div class="card-content">
                       <div class="card-body">
                         <div class="media d-flex">
                           <div class="align-self-center">
-                            <i class="material-icons">face</i>
+                            <i class="material-icons md-36">timelapse</i>
                           </div>
                           <div class="media-body text-right">
-                            <h3>278</h3>
-                            <span>New Posts</span>
+                            <h3 id = "h-tiempo-muestreo">5 s</h3>
+                            <span>Tiempo de muestreo</span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
+                <div class="col-xl-4 col-sm-12 col-12">
                   <div class="card">
                     <div class="card-content">
                       <div class="card-body">
                         <div class="media d-flex">
                           <div class="align-self-center">
-                            <i class="material-icons">timelapse</i>
+                            <i class="material-icons md-36">email</i>
                           </div>
                           <div class="media-body text-right">
-                            <h3>5</h3>
-                            <span>Tiempo de muestreo (segundos)</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 col-12">
-                  <div class="card">
-                    <div class="card-content">
-                      <div class="card-body">
-                        <div class="media d-flex">
-                          <div class="align-self-center">
-                            <i class="material-icons">email</i>
-                          </div>
-                          <div class="media-body text-right">
-                            <h3>diegomarvid99@gmail.com</h3>
+                            <h3 id = "h-email">diegomarvid99@gmail.com</h3>
                             <span>Email de destino</span>
                           </div>
                         </div>
@@ -138,24 +162,25 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 col-12">
+                <div class="col-xl-2 col-sm-12 col-12">
                   <div class="card">
                     <div class="card-content">
                       <div class="card-body">
                         <div class="media d-flex">
                           <div class="align-self-center">
-                            <i class="material-icons">alarm</i>
+                            <i class="material-icons md-36">alarm</i>
                           </div>
                           <div class="media-body text-right">
-                            <h3>60</h3>
-                            <span>Tiempo entre alarmas (minutos)</span>
+                            <h3 id = "h-tiempo-alarma">60 m</h3>
+                            <span>Tiempo entre alarmas</span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+            </div>
+        </div>    
 
         <div class = "row text-center top-buffer2">
             <div class = "col-md-4"></div>
@@ -165,24 +190,23 @@
             <div class = "col-md-4"></div>
         </div>
     
-        <form>
-             <div class="row top-buffer">
-                <div class = "col-md-4"></div>
-                <div class="col-md-2">
-                    <input id = "min_temp_id" type="number" class="form-control" placeholder="Temperatura minima (ºC)"
+   
+        <div class="row top-buffer">
+            <div class = "col-md-4"></div>
+            <div class="col-md-2">
+                <input id = "min_temp_id" type="number" class="form-control" placeholder="Temperatura minima (ºC)"
                         oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0"
-                    >
+                >
                 </div>
-                <div class="col-md-2">
-                    <input id = "max_temp_id" type="number" class="form-control" placeholder="Temperatura maxima (ºC)"
-                        oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0"
-                    >
-                </div>
-                <div class = "col-md-4">
-                    <button class="btn btn-primary" type="button" id = "temp-range-confirm">Confirmar</button>
-                </div>
+            <div class="col-md-2">
+                <input id = "max_temp_id" type="number" class="form-control" placeholder="Temperatura maxima (ºC)"
+                    oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0"
+                >
             </div>
-        </form>
+            <div class = "col-md-4">
+                <button class="btn btn-primary" type="button" id = "temp-range-confirm">Confirmar</button>
+            </div>
+        </div>
 
         <div class = "row text-center top-buffer2">
             <div class = "col-md-4"></div>
@@ -383,6 +407,16 @@
                 }
             });
     
+
+            socket.on('config-update', function(data){
+              $('#h-tiempo-muestreo').text(data.tiempo_muestreo + ' s');
+              $('#h-tiempo-alarma').text(data.tiempo_alerta + ' m');
+              $('#h-email').text(data.email);
+              $('#h-temp-min').text(data.temp_min + ' ºC');
+              $('#h-temp-max').text(data.temp_max + ' ºC');
+            })
+
+ 
     
         </script>
            

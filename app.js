@@ -10,6 +10,8 @@ const USER = 'root';
 const KEY = 'admin';
 
 let tiempo_muestreo = 5;
+let tiempo_alerta = 5;
+let email = 'diegomarvid99@gmail.com';
 
 let config_encrypt_str = CryptoJS.AES.encrypt(USER,KEY).toString();
 
@@ -65,7 +67,15 @@ io.sockets.on('connection', function(socket) {
         }
         
     });
+
+    socket.emit('config-update', {tiempo_muestreo: tiempo_muestreo, tiempo_alerta: tiempo_alerta, 
+        email: email, temp_min: MIN_TEMP, temp_max: MAX_TEMP});
     
+    socket.once('disconnect', function () {
+        delete SOCKET_LIST[socket.id];
+      });
+
+
     socket.on('dateRange', function(data){
 
 
@@ -152,18 +162,15 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('config-tiempo-muestras', function(data){
-        console.log("recibo tiempo muestras");
-        console.log(data);
+        tiempo_muestreo = data.muestras_tiempo;
     });
 
     socket.on('config-email', function(data){
-        console.log("recibo email");
-        console.log(data);
+        email = data.email;
     });
 
     socket.on('config-tiempo-alerta', function(data){
-        console.log("recibo tiempo entre alertas");
-        console.log(data);
+        tiempo_alerta = data.alerta_tiempo;
     });
     
 
@@ -178,6 +185,14 @@ let sql = "SELECT rowid FROM test WHERE date > '2020-09-11 19:40:00' "
 // })
 
 setInterval(function() {
+
+    for(let i in SOCKET_LIST){
+        socket = SOCKET_LIST[i];
+        console.log(i)
+        socket.emit('config-update', {tiempo_muestreo: tiempo_muestreo, tiempo_alerta: tiempo_alerta, 
+                                      email: email, temp_min: MIN_TEMP, temp_max: MAX_TEMP});
+    }
+
 
     db.all('SELECT * FROM test ORDER BY date DESC LIMIT 1', function(err, rows){
 
