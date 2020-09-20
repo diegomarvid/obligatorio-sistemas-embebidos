@@ -44,7 +44,7 @@
         body {
             height: 100%;
             background-color: #DCDCDC;
-            background: url('/client/resources/temp.jpg'); 
+            background: url('/client/resources/temp.png'); 
             background-size: cover;
             overflow: auto;
         }
@@ -264,12 +264,12 @@
         <div class="row">
             <div class = "col-sm-4 col-2"></div>
             <div class = "col-sm-2 col-4">
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="downloadCheck">
-                    <label class="form-check-label" for="exampleCheck1">Descargar datos</label>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="downloadCheck">
+                    <label class="custom-control-label" for="downloadCheck">Descargar datos</label>
                 </div>
             </div>      
-            <div class = "col-sm-2 col-5 d-flex justify-content-end">
+            <div class = "col-sm-2 col-5 d-flex justify-content-end" id = "alarma-div">
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="alarma-id">
                 <label class="custom-control-label" for="alarma-id" id = "alarma-txt-id">Alarma desactivada</label>

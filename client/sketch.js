@@ -140,10 +140,16 @@ $('#date-range-confirm').click(function(){
     socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download});
 })
 
-
+Notiflix.Block.Init({
+    backgroundColor:'#DCDCDC',
+    messageColor:'#0',
+    svgSize:'20px'
+});
 
 $('#alarma-id').click(function(){
     let estado = $('#alarma-id').is(':checked');
+    Notiflix.Block.Circle('div#alarma-div', 'Loading...');
+    Notiflix.Block.Remove('div#alarma-div', 1600);
     socket.emit('activar-alarma', {estado: estado});
 });
 
