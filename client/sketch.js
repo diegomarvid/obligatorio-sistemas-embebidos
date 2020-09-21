@@ -122,13 +122,16 @@ socket.on('logInResponse', function(data) {
 });
 
 let pis = [];
+let pis_off = [];
 
 function create_html_card(user, online = true){
 
     let state_html = '"online_icon"';
+    let state_txt_html = 'online';
 
     if(online == false){
         state_html = '"online_icon offline"';
+        state_txt_html = 'offline'
     }
 
     let html1 = '<li>' + '<div class="d-flex bd-highlight">' + '<div class="img_cont">'
@@ -136,53 +139,73 @@ function create_html_card(user, online = true){
           + '<span class=' + state_html +'></span>' + '</div>'
           +  '<div class="user_info">'  + '<span>';
     let html2 = '</span>' + '<p>';
-    let html3 = ' is online</p>'  +  '</div>  ' + '</div>' + '</li>'    
+    let html3 = ' is ' + state_txt_html + '</p>'  +  '</div>  ' + '</div>' + '</li>'    
     return html1 + user + html2 + user + html3;
 }
 
+function show_chat(){
+     //Primero muestro los conectados
+    for(let i in pis){      
+        id = '#test' + i;
+        html = create_html_card(pis[i], true);
+        $(id).html(html)        
+    }
+    //Despues los desconectados
+    for(let i in pis_off){
+        let index = parseInt(i) + pis.length;
+        id = '#test' + index;
+        html = create_html_card(pis_off[i], false);
+        $(id).html(html)           
+    }
+}
+
 socket.on('init_pis', function(data){
-    console.log(data)
 
-    //Primero pongo los online
-    let contador = 0;
-    let id;
-    let html;
-
+    //Creo array de conectados y desconectados
     for(let i in data.users){
         if(data.users[i] == 'online'){
-            pis[contador] = i;
-            id = '#test' + contador;
-            html = create_html_card(pis[contador], true);
-            $(id).html(html)
-            contador++;
+            pis[pis.length] = i;
+        } else{
+            pis_off[pis_off.length] = i;
         }
     }
     
+    show_chat();
+    console.log(pis, pis_off)
 
 })
     
 
 socket.on('new_pi', function(data){
-    let html = create_html_card(data.user, true);
-    let id = '#test' + pis.length;
 
-    //Si no esta en la lista
+    //Lo agrego a la lista de conectados
     if(pis.indexOf(data.user) < 0){
         pis.push(data.user)
-        $(id).html(html);
+   
     }
+
+    //Lo saco de la lista de desconectados
+    pis_off = pis_off.filter(e => e !== data.user)
+
+    show_chat();
+    console.log(pis, pis_off)
+    
     
 });
 socket.on('delete_pi', function(data){
-    let index = pis.indexOf(data.user);
-    pis[index] = null;
+
+    //Lo agrego a la lista de desconectados
+    if(pis_off.indexOf(data.user) < 0){
+        pis_off.push(data.user)
+    }
     
-    let id = '#test' + index;
-    console.log(id)
-    $(id).empty()
-    // let html = create_html_card(data.user, false);
-    // $(id).html(html);
-    console.log(pis)
+
+    //Lo saco de la lista de conectados
+    pis = pis.filter(e => e !== data.user)
+
+    show_chat();
+    console.log(pis, pis_off)
+    
 });
 
 socket.on('tempCSV', function(data){
