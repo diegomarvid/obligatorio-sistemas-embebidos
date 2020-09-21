@@ -16,6 +16,9 @@
   "engines": {
     "node": "10.x"
   },
+  "scripts": {
+    "start": "node app.js"
+  },
   "dependencies": {
     "crypto-js": "^4.0.0",
     "express": "^4.17.1",
