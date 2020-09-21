@@ -2,6 +2,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const CryptoJS = require("crypto-js");
 const { rootCertificates } = require('tls');
+const { ALL } = require('dns');
 
 let MAX_TEMP = 50;
 let MIN_TEMP = 40;
@@ -58,8 +59,11 @@ function check_repetead_user(user){
 }
 
 
+
+
 SOCKET_LIST = {};
 SOCKET_DATA_LIST = {};
+ALL_USERS = {};
 
 let io = require('socket.io')(serv, {});
 
@@ -75,13 +79,23 @@ io.sockets.on('connection', function(socket) {
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
 
+    
+
     socket.on('data_connection', function(data){
+
+        delete SOCKET_LIST[socket.id];
 
 
         if(data.id.substring(0,2) == 'pi' && check_repetead_user(data.id) == false){   
             console.log(`raspberry [${data.id}] connected`);
             socket.emit('data_connection_res', {success: true})
             SOCKET_DATA_LIST[socket.id] = data.id;
+            ALL_USERS[data.id] = 'online';
+
+            //Envio a las web que actualicen el chat
+            for(let i in SOCKET_LIST){
+                SOCKET_LIST[i].emit('new_pi', {user: data.id})
+            }
             
         } else{
             socket.emit('data_connection_res', {success: false})
@@ -93,6 +107,8 @@ io.sockets.on('connection', function(socket) {
     socket.on('logIn', function(data) {
         if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str, max_temp: MAX_TEMP, min_temp: MIN_TEMP});
+            //Enviar listas de pis al conectarse
+            socket.emit('init_pis', {users: ALL_USERS});
         } else{
             socket.emit('logInResponse', {success: false, config_link: ""});
         }
@@ -111,8 +127,15 @@ io.sockets.on('connection', function(socket) {
 
         delete SOCKET_LIST[socket.id];
 
+        let user_id = SOCKET_DATA_LIST[socket.id];
         //Si se desconecta una raspberry
-        if(SOCKET_DATA_LIST[socket.id] != null) {
+        if(user_id != null) {
+            //Cambio estado a offline
+            ALL_USERS[user_id] = 'offline';
+            //Envio a las web que actualicen el chat
+            for(let i in SOCKET_LIST){
+                SOCKET_LIST[i].emit('delete_pi', {user: user_id})
+            }
             delete SOCKET_DATA_LIST[socket.id];   
         }
 

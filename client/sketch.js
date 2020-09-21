@@ -20,8 +20,6 @@ let config_link = "";
 
 socket.on('config_update', function(data){
 
-    console.log('actualizando')
-
     let estado = data.rows[5].config;
 
     if(estado == 1){
@@ -97,7 +95,6 @@ function downloadCSV(args, arr) {
 function login(){
     let username = $('#username_id').val();
     let password = $('#password_id').val();
-    console.log(username, password)
     socket.emit('logIn', {username: username, password: password});
     return;
 }
@@ -105,7 +102,7 @@ function login(){
 socket.on('logInResponse', function(data) {
     if(data.success) {
         Notiflix.Loading.Standard();
-        Notiflix.Loading.Remove(1000);
+        Notiflix.Loading.Remove(1);
 
         setTimeout(function(){
             $("body").css("background","#DCDCDC");
@@ -115,14 +112,77 @@ socket.on('logInResponse', function(data) {
             document.getElementById('config-id').setAttribute("href",data.config_link);
             TEMP_MIN = data.min_temp;
             TEMP_MAX = data.max_temp;
-            console.log(TEMP_MIN, TEMP_MAX);
-        }, 1000)
+        }, 1)
         
     } else{
         Notiflix.Notify.Failure('Usuario o contraseña invalido');
         $('#username_id').focus();
     }
 
+});
+
+let pis = [];
+
+function create_html_card(user, online = true){
+
+    let state_html = '"online_icon"';
+
+    if(online == false){
+        state_html = '"online_icon offline"';
+    }
+
+    let html1 = '<li>' + '<div class="d-flex bd-highlight">' + '<div class="img_cont">'
+          + '<img src="/client/resources/fondo.jpg" class="rounded-circle user_img">'
+          + '<span class=' + state_html +'></span>' + '</div>'
+          +  '<div class="user_info">'  + '<span>';
+    let html2 = '</span>' + '<p>';
+    let html3 = ' is online</p>'  +  '</div>  ' + '</div>' + '</li>'    
+    return html1 + user + html2 + user + html3;
+}
+
+socket.on('init_pis', function(data){
+    console.log(data)
+
+    //Primero pongo los online
+    let contador = 0;
+    let id;
+    let html;
+
+    for(let i in data.users){
+        if(data.users[i] == 'online'){
+            pis[contador] = i;
+            id = '#test' + contador;
+            html = create_html_card(pis[contador], true);
+            $(id).html(html)
+            contador++;
+        }
+    }
+    
+
+})
+    
+
+socket.on('new_pi', function(data){
+    let html = create_html_card(data.user, true);
+    let id = '#test' + pis.length;
+
+    //Si no esta en la lista
+    if(pis.indexOf(data.user) < 0){
+        pis.push(data.user)
+        $(id).html(html);
+    }
+    
+});
+socket.on('delete_pi', function(data){
+    let index = pis.indexOf(data.user);
+    pis[index] = null;
+    
+    let id = '#test' + index;
+    console.log(id)
+    $(id).empty()
+    // let html = create_html_card(data.user, false);
+    // $(id).html(html);
+    console.log(pis)
 });
 
 socket.on('tempCSV', function(data){
@@ -151,6 +211,17 @@ $('#alarma-id').click(function(){
     Notiflix.Block.Circle('div#alarma-div', 'Loading...');
     Notiflix.Block.Remove('div#alarma-div', 1600);
     socket.emit('activar-alarma', {estado: estado});
+
+    let html =  '<li>' + '<div class="d-flex bd-highlight">' + '<div class="img_cont">'
+    + '<img src="/client/resources/fondo.jpg" class="rounded-circle user_img">'
+   + '<span class="online_icon"></span>' +  '</div>'
+   + '<div class="user_info">' + '<span>Khalid</span>' + '<p>Kalid is online</p>'
+   + '</div>' + '</div>' +'</li>';
+               
+                
+    $('#test').append(html);
+
+
 });
 
 
@@ -177,8 +248,6 @@ function drawChart() {
         temp_actual = data.temp.temperature;
         TEMP_MIN = data.min_temp;
         TEMP_MAX = data.max_temp;
-
-        console.log(TEMP_MIN, TEMP_MAX)
 
         options = {
             width: 220, height: 220,
