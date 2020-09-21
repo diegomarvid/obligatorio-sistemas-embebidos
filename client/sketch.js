@@ -18,7 +18,7 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
-socket.on('config-update', function(data){
+socket.on('config_update', function(data){
 
     console.log('actualizando')
 

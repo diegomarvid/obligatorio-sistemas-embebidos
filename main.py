@@ -2,6 +2,10 @@ import sqlite3
 import datetime
 import threading
 import random
+import socketio
+import json
+from json import dumps
+
 
 from sqlite3 import Error
 
@@ -16,6 +20,28 @@ try:
 except Error:
 
     print(Error)
+
+
+
+sio = socketio.Client()    
+sio.connect('http://localhost:8080')
+
+user = 'pi04'
+
+sio.emit('data_connection', {'id': user})
+
+@sio.event
+def config_update(data):
+    # print(data)
+    return
+
+@sio.event
+def data_connection_res(data):
+    if(data['success'] == True): 
+        print('connected to serverrr')
+    else:
+        print('connection refused by server')    
+    return    
 
 def sql_table(con):
 
@@ -58,17 +84,14 @@ def sql_fetch_last(con):
 
     print(rows[0])
 
+# json.dumps(my_dictionary, indent=4, sort_keys=True, default=str)
 
-
-
-
-
-
-tempii = 50
+# tempii = 50
 
 def loop():
   threading.Timer(5.0, loop).start()
-  sql_update(con, random.randint(20,70))
+  sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': 50})
+#   sql_update(con, random.randint(20,70))
   
 
 loop()

@@ -48,7 +48,18 @@ serv.listen(process.env.PORT || 8080, function() {
 });
 
 
+function check_repetead_user(user){
+    for(let i in SOCKET_DATA_LIST){
+        if(user == SOCKET_DATA_LIST[i]){
+            return true;
+        }   
+    }
+    return false;
+}
+
+
 SOCKET_LIST = {};
+SOCKET_DATA_LIST = {};
 
 let io = require('socket.io')(serv, {});
 
@@ -61,9 +72,23 @@ let db = new sqlite3.Database('./db/temp.db', (err) => {
 
 io.sockets.on('connection', function(socket) {
 
-
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
+
+    socket.on('data_connection', function(data){
+
+
+        if(data.id.substring(0,2) == 'pi' && check_repetead_user(data.id) == false){   
+            console.log(`raspberry [${data.id}] connected`);
+            socket.emit('data_connection_res', {success: true})
+            SOCKET_DATA_LIST[socket.id] = data.id;
+            
+        } else{
+            socket.emit('data_connection_res', {success: false})
+        }
+
+
+    })
 
     socket.on('logIn', function(data) {
         if(data.username == USER && data.password == KEY){
@@ -83,7 +108,14 @@ io.sockets.on('connection', function(socket) {
     })
     
     socket.on('disconnect', function () {
+
         delete SOCKET_LIST[socket.id];
+
+        //Si se desconecta una raspberry
+        if(SOCKET_DATA_LIST[socket.id] != null) {
+            delete SOCKET_DATA_LIST[socket.id];   
+        }
+
     });
 
     socket.on('activar-alarma', function(data){
@@ -102,7 +134,7 @@ io.sockets.on('connection', function(socket) {
 
 
 
-        db.all('SELECT * FROM test WHERE date BETWEEN ? AND ?', [data.startDate, data.endDate], function(err, rows){
+        db.all('SELECT * FROM test2 WHERE date BETWEEN ? AND ?', [data.startDate, data.endDate], function(err, rows){
 
             if(rows != null && rows.length > 0) {
 
@@ -202,11 +234,29 @@ io.sockets.on('connection', function(socket) {
             }
         });
     });
+
+    socket.on('python', function(data){
+        
+        //Si esta habilitado para enviar proceso
+        if(SOCKET_DATA_LIST[socket.id] != null){
+            db.run("INSERT INTO test2 values (?,?,?)", [data.date, data.temp, SOCKET_DATA_LIST[socket.id]], (err) => {
+                if(err){
+                    return console.log(err);
+                }
+            });
+           
+        }
+
+
+    })
     
 
 });
 
 
+function getDate() {
+    return new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
+}
 
 let sql = "SELECT rowid FROM test WHERE date > '2020-09-11 19:40:00' "
 
@@ -231,7 +281,7 @@ setInterval(function() {
         }
     });
 
-    db.all('SELECT * FROM test ORDER BY date DESC LIMIT 1', function(err, rows){
+    db.all('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, rows){
 
         if(err) {
             console.log(err);
@@ -243,7 +293,7 @@ setInterval(function() {
  
     for(let i in SOCKET_LIST){
         socket = SOCKET_LIST[i];
-        socket.emit('config-update', {rows: config_rows});
+        socket.emit('config_update', {rows: config_rows});
         if(last_temp != null){
             socket.emit('lastTemp', {temp: last_temp, min_temp: MIN_TEMP, max_temp: MAX_TEMP} );
         }

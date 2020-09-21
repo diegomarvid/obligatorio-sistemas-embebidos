@@ -407,7 +407,7 @@
             });
     
 
-            socket.on('config-update', function(data){
+            socket.on('config_update', function(data){
               $('#h-tiempo-muestreo').text(data.rows[2].config + ' s');
               $('#h-tiempo-alarma').text(data.rows[4].config + ' m');
               $('#h-email').text(data.rows[3].config);
