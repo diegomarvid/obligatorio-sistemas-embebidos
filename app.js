@@ -42,6 +42,10 @@ app.get(config_route, function(req, res) {
     res.sendFile(__dirname + '/client/config.html');
 });
 
+app.get('/.well-known/pki-validation/', function(req, res){
+    res.sendFile(__dirname + '/1B5A3397F83271BD39D8721EFAC6C701.txt');
+})
+
 app.use('/client', express.static(__dirname + '/client'));
 
 serv.listen(process.env.PORT || 8080, function() {

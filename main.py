@@ -24,9 +24,9 @@ except Error:
 
 
 sio = socketio.Client()    
-sio.connect('http://localhost:8080')
+sio.connect('https://obligatorio1-embebidos.herokuapp.com/')
 
-user = 'pi04'
+user = 'piotte'
 
 sio.emit('data_connection', {'id': user})
 
