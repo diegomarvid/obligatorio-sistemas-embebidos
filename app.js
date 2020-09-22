@@ -4,6 +4,14 @@ const CryptoJS = require("crypto-js");
 const { rootCertificates } = require('tls');
 const { ALL } = require('dns');
 
+const { Pool } = require('pg');
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+
 let MAX_TEMP = 50;
 let MIN_TEMP = 40;
 

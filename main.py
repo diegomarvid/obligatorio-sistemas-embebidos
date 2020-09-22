@@ -4,6 +4,8 @@ import threading
 import random
 import socketio
 import json
+import perlin
+import math
 from json import dumps
 
 
@@ -24,9 +26,9 @@ except Error:
 
 
 sio = socketio.Client()    
-sio.connect('https://obligatorio1-embebidos.herokuapp.com/')
+sio.connect('https://iandel.net/')
 
-user = 'piotte'
+user = 'pi1'
 
 sio.emit('data_connection', {'id': user})
 
@@ -87,11 +89,17 @@ def sql_fetch_last(con):
 # json.dumps(my_dictionary, indent=4, sort_keys=True, default=str)
 
 # tempii = 50
+i = 0
+max_temp = 70
+min_temp = 20
 
+noise=perlin.Perlin(2)
 def loop():
-  threading.Timer(5.0, loop).start()
-  sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': 50})
-#   sql_update(con, random.randint(20,70))
-  
+  global i
+  i = i + 1
+  threading.Timer(5, loop).start()
+  temp = ((noise.valueAt(i) + 1)/2)*(max_temp-min_temp) + min_temp
+  temp = math.floor(temp)
+  sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': temp})
 
 loop()

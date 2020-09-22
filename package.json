@@ -4,7 +4,7 @@
   "description": "Obligatorio de sistemas embebidos",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "keywords": [
     "sistemas",
@@ -16,12 +16,10 @@
   "engines": {
     "node": "10.x"
   },
-  "scripts": {
-    "start": "node app.js"
-  },
   "dependencies": {
     "crypto-js": "^4.0.0",
     "express": "^4.17.1",
+    "pg": "^8.3.3",
     "socket.io": "^2.3.0",
     "sqlite3": "^5.0.0"
   }
