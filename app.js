@@ -12,6 +12,10 @@ const pool = new Pool({
     }
   });
 
+pool.on('connect', client => {
+    console.log('se conecto a POSTGRESQL')
+})  
+
 let MAX_TEMP = 50;
 let MIN_TEMP = 40;
 
@@ -59,6 +63,8 @@ app.use('/client', express.static(__dirname + '/client'));
 serv.listen(process.env.PORT || 8080, function() {
     console.log("Server listening at 8080");
 });
+
+
 
 
 function check_repetead_user(user){
