@@ -6,15 +6,51 @@ const { ALL } = require('dns');
 
 const { Pool } = require('pg');
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || 'postgres://bpnglisbxsblsw:9f0fd7e900530dc873613357b58a653b4ca786f8165d79e62ec91714807abd0e@ec2-52-73-199-211.compute-1.amazonaws.com:5432/dfhs19f5g32p3h',
     ssl: {
       rejectUnauthorized: false
     }
   });
 
-pool.on('connect', client => {
-    console.log('se conecto a POSTGRESQL')
-})  
+pool.connect((err, client, release) => {
+    if(err){
+        console.error(err.stack)
+    } else{
+        console.log('exito al conectar')     
+    }
+
+    
+})
+
+// pool.query('INSERT INTO config VALUES ($1, $2)', [6, '10'], (err, res) => {
+//     if(err){
+//         console.log(err)
+//     }
+// })
+
+
+
+
+// pool.query('ALTER TABLE CONFIG ADD UNIQUE (id)', (err, res) => {
+//     if(err){
+//         console.log(err)
+//     }
+//     console.log(res)
+// })
+
+    // pool.query('DELETE FROM test2 WHERE date = ($1)',['a'], (err, res) => {
+    //     if(err){
+    //         console.log(err)
+    //     }
+    // })
+
+
+// pool.query('CREATE TABLE config (config STRING);', (err, res) => {
+//     if(err){
+//         console.log(err)
+//     }
+//     console.log(res)
+// })
 
 let MAX_TEMP = 50;
 let MIN_TEMP = 40;
@@ -133,13 +169,22 @@ io.sockets.on('connection', function(socket) {
         
     });
 
-    db.all('SELECT * from config', function(err, rows){
+    pool.query('SELECT * from config', function(err, res){
         if(err){
-            console.log(err);
-        }else{ 
-            socket.emit('config-update', {rows: rows});
+            console.log(err)
+        }else{
+            socket.emit('config-update', {rows: res.rows});
         }
+        
     })
+
+    // db.all('SELECT * from config', function(err, rows){
+    //     if(err){
+    //         console.log(err);
+    //     }else{ 
+    //         socket.emit('config-update', {rows: rows});
+    //     }
+    // })
     
     socket.on('disconnect', function () {
 
@@ -175,7 +220,8 @@ io.sockets.on('connection', function(socket) {
 
 
 
-        db.all('SELECT * FROM test2 WHERE date BETWEEN ? AND ?', [data.startDate, data.endDate], function(err, rows){
+        pool.query('SELECT * FROM test2 WHERE date BETWEEN $1 AND $2', [data.startDate, data.endDate], function(err, res){
+            let rows = res.rows;
 
             if(rows != null && rows.length > 0) {
 
@@ -231,8 +277,22 @@ io.sockets.on('connection', function(socket) {
     //----------------Sockets de configuracion---------------------//
 
     let sql = 'UPDATE config SET config = (?) WHERE rowid = ';
+    let sql2 = 'UPDATE config SET Atr = ($2) WHERE id = ($1)';
 
     socket.on('config-temp-range', function(data){
+
+        pool.query(sql2, [CONFIG.TEMP_MIN, data.min_temp], (err, res) => {
+            if(err){
+                console.log(err)
+             }
+        })
+
+        pool.query(sql2, [CONFIG.TEMP_MAX, data.max_temp], (err, res) => {
+            if(err){
+                console.log(err)
+             }
+        })
+        
         
         db.run(sql + CONFIG.TEMP_MIN, [data.min_temp], (err) => {
             if(err){
@@ -250,6 +310,12 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('config-tiempo-muestras', function(data){
+
+        pool.query(sql2, [CONFIG.TIEMPO_MUESTREO, data.muestras_tiempo], (err, res) => {
+            if(err){
+                console.log(err)
+             }
+        })
         
         db.run(sql + CONFIG.TIEMPO_MUESTREO, [data.muestras_tiempo], (err) => {
             if(err){
@@ -261,6 +327,13 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('config-email', function(data){
+
+        pool.query(sql2, [CONFIG.EMAIL, data.email], (err, res) => {
+            if(err){
+                console.log(err)
+             }
+        })
+
         db.run(sql + CONFIG.EMAIL, [data.email], (err) => {
             if(err){
                 return console.log(err);
@@ -269,6 +342,13 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('config-tiempo-alerta', function(data){
+
+        pool.query(sql2, [CONFIG.TIEMPO_ALARMAS, data.alerta_tiempo], (err, res) => {
+            if(err){
+                console.log(err)
+             }
+        })
+
         db.run(sql + CONFIG.TIEMPO_ALARMAS, [data.alerta_tiempo], (err) => {
             if(err){
                 return console.log(err);
@@ -280,7 +360,7 @@ io.sockets.on('connection', function(socket) {
         
         //Si esta habilitado para enviar proceso
         if(SOCKET_DATA_LIST[socket.id] != null){
-            db.run("INSERT INTO test2 values (?,?,?)", [data.date, data.temp, SOCKET_DATA_LIST[socket.id]], (err) => {
+            pool.query("INSERT INTO test2 values ($1,$2,$3)", [data.date, data.temp, SOCKET_DATA_LIST[socket.id]], (err) => {
                 if(err){
                     return console.log(err);
                 }
@@ -307,27 +387,45 @@ let sql = "SELECT rowid FROM test WHERE date > '2020-09-11 19:40:00' "
 
 
 let socket;
-let last_temp;
+let last_temp = 69;
 let config_rows;
 
 setInterval(function() {
 
-    db.all('SELECT * from config', function(err, rows){
+    pool.query('SELECT * from config', function(err, res){
         if(err){
             console.log(err);
         }else{
-            config_rows = rows;         
-            MIN_TEMP = rows[0].config;
-            MAX_TEMP = rows[1].config;
-        }
-    });
+            config_rows = res.rows;
 
-    db.all('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, rows){
+            for(let i in res.rows){
+                if(res.rows[i].id == '1'){
+                    MIN_TEMP = res.rows[i].atr;
+                }
+                if(res.rows[i].id == '2'){
+                    MAX_TEMP =res.rows[i].atr;
+                }
+            }                    
+        }
+    })
+
+    // db.all('SELECT * from config', function(err, rows){
+    //     if(err){
+    //         console.log(err);
+    //     }else{
+    //         config_rows = rows;         
+    //         MIN_TEMP = rows[0].config;
+    //         MAX_TEMP = rows[1].config;
+    //     }
+    // });
+
+    pool.query('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, res){
 
         if(err) {
             console.log(err);
         } else{
-            last_temp = rows[0];
+            last_temp = res.rows[0].temperature;
+            console.log(last_temp)
         }
 
     });

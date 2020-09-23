@@ -408,11 +408,22 @@
     
 
             socket.on('config_update', function(data){
-              $('#h-tiempo-muestreo').text(data.rows[2].config + ' s');
-              $('#h-tiempo-alarma').text(data.rows[4].config + ' m');
-              $('#h-email').text(data.rows[3].config);
-              $('#h-temp-min').text(data.rows[0].config + ' ºC');
-              $('#h-temp-max').text(data.rows[1].config + ' ºC');
+              
+              for(let i in data.rows){
+
+                if(data.rows[i].id == 1){
+                  $('#h-temp-min').text(data.rows[i].atr + ' ºC');
+                } else if(data.rows[i].id == 2){
+                  $('#h-temp-max').text(data.rows[i].atr + ' ºC');
+                } else if(data.rows[i].id == 3){
+                  $('#h-tiempo-muestreo').text(data.rows[i].atr + ' s');
+                } else if(data.rows[i].id == 4){
+                  $('#h-email').text(data.rows[i].atr);
+                } else{
+                  $('#h-tiempo-alarma').text(data.rows[i].atr + ' m');
+                }
+              }
+              
             });
 
  

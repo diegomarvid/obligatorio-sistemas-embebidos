@@ -171,7 +171,7 @@ socket.on('init_pis', function(data){
     }
     
     show_chat();
-    console.log(pis, pis_off)
+   
 
 })
     
@@ -268,7 +268,9 @@ function drawChart() {
 
     socket.on('lastTemp', function(data){
 
-        temp_actual = data.temp.temperature;
+        // temp_actual = data.temp.temperature;
+        temp_actual = data.temp
+        
         TEMP_MIN = data.min_temp;
         TEMP_MAX = data.max_temp;
 

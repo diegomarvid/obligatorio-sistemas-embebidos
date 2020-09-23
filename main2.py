@@ -24,7 +24,7 @@ def data_connection_res(data):
 
 def loop():
     threading.Timer(5.0, loop).start()
-    sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': 50})
+    sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': 64})
 
 
 loop()    
