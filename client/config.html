@@ -419,7 +419,7 @@
                   $('#h-tiempo-muestreo').text(data.rows[i].atr + ' s');
                 } else if(data.rows[i].id == 4){
                   $('#h-email').text(data.rows[i].atr);
-                } else{
+                } else if(data.rows[i].id == 5){
                   $('#h-tiempo-alarma').text(data.rows[i].atr + ' m');
                 }
               }

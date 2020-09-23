@@ -20,14 +20,21 @@ let config_link = "";
 
 socket.on('config_update', function(data){
 
-    let estado = data.rows[5].config;
+    let estado;
 
-    if(estado == 1){
-        estado = true;
+    for(let i in data.rows){
+        if(data.rows[i].id == 6){
+            estado = data.rows[i].atr;   
+            break;
+        }
+    }
+    
+    if(estado == 'true'){
         $('#alarma-txt-id').text('Alarma activada');
+        estado = true;    
     } else{
-        estado = false;
         $('#alarma-txt-id').text('Alarma desactivada');
+        estado = false;
     }
 
     $('#alarma-id').prop('checked',estado);

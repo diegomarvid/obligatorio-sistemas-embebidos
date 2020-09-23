@@ -26,7 +26,7 @@ except Error:
 
 
 sio = socketio.Client()    
-sio.connect('http://localhost:8080')
+sio.connect('https://iandel.net')
 
 user = 'pi1'
 

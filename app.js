@@ -207,6 +207,12 @@ io.sockets.on('connection', function(socket) {
     socket.on('activar-alarma', function(data){
 
         let sql = 'UPDATE config SET config = (?) WHERE rowid = ';
+
+        pool.query('UPDATE config SET Atr = ($2) WHERE id = ($1)',[6, data.estado], (err) =>{
+            if(err){
+                return console.log(err);
+            }
+        })
        
         db.run(sql + CONFIG.ESTADO_ALARMA, [data.estado], (err) => {
             if(err){
@@ -425,7 +431,6 @@ setInterval(function() {
             console.log(err);
         } else{
             last_temp = res.rows[0].temperature;
-            console.log(last_temp)
         }
 
     });
