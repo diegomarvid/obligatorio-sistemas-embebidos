@@ -130,9 +130,7 @@ let db = new sqlite3.Database('./db/temp.db', (err) => {
 
 io.sockets.on('connection', function(socket) {
 
-    var clientIp = socket.request.connection.remoteAddress;
-  
-    console.log(clientIp);
+    console.log('connection :', socket.request.connection._peername);
 
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
