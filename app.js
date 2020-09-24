@@ -82,11 +82,11 @@ const app = express();
 
 let serv = require('http').Server(app);
 
-let ip;
+let banned_ips = ['186.50.76.85'];
 
 app.get('/', function(req, res) {
     ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    if(ip != '186.50.76.85'){
+    if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
     }
     
