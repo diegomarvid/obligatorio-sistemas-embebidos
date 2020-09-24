@@ -84,6 +84,8 @@ let serv = require('http').Server(app);
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/client/index.html');
+    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    console.log(ip)
 });
 
 app.get(config_route, function(req, res) {
@@ -129,8 +131,6 @@ let db = new sqlite3.Database('./db/temp.db', (err) => {
   });
 
 io.sockets.on('connection', function(socket) {
-
-    console.log('connection :', socket.request.connection._peername);
 
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
