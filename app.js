@@ -86,7 +86,7 @@ let ip;
 
 app.get('/', function(req, res) {
     ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    if(ip != '190.133.23.60'){
+    if(ip != '186.50.76.85'){
         res.sendFile(__dirname + '/client/index.html');
     }
     
