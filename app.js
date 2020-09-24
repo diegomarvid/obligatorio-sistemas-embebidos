@@ -130,6 +130,9 @@ let db = new sqlite3.Database('./db/temp.db', (err) => {
 
 io.sockets.on('connection', function(socket) {
 
+    var address = socket.handshake.address;
+    console.log('New connection from ' + address.address + ':' + address.port);
+
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
 
@@ -363,7 +366,6 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('python', function(data){
-        
         //Si esta habilitado para enviar proceso
         if(SOCKET_DATA_LIST[socket.id] != null){
             pool.query("INSERT INTO test2 values ($1,$2,$3)", [data.date, data.temp, SOCKET_DATA_LIST[socket.id]], (err) => {
