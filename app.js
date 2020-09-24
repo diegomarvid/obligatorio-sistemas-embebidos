@@ -82,9 +82,14 @@ const app = express();
 
 let serv = require('http').Server(app);
 
+let ip;
+
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/client/index.html');
-    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    if(ip != '190.133.23.60'){
+        res.sendFile(__dirname + '/client/index.html');
+    }
+    
     console.log(ip)
 });
 
