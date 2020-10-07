@@ -5,6 +5,7 @@ const { rootCertificates } = require('tls');
 const { ALL } = require('dns');
 
 const { Pool } = require('pg');
+const { config } = require('process');
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgres://bpnglisbxsblsw:9f0fd7e900530dc873613357b58a653b4ca786f8165d79e62ec91714807abd0e@ec2-52-73-199-211.compute-1.amazonaws.com:5432/dfhs19f5g32p3h',
     ssl: {
@@ -111,8 +112,8 @@ serv.listen(process.env.PORT || 8080, function() {
 
 
 function check_repetead_user(user){
-    for(let i in SOCKET_DATA_LIST){
-        if(user == SOCKET_DATA_LIST[i]){
+    for(let i in USERID_DATA_LIST){
+        if(user == USERID_DATA_LIST[i]){
             return true;
         }   
     }
@@ -123,6 +124,7 @@ function check_repetead_user(user){
 
 
 SOCKET_LIST = {};
+USERID_DATA_LIST = {};
 SOCKET_DATA_LIST = {};
 ALL_USERS = {};
 
@@ -150,13 +152,31 @@ io.sockets.on('connection', function(socket) {
         if(data.id.substring(0,2) == 'pi' && check_repetead_user(data.id) == false){   
             console.log(`raspberry [${data.id}] connected`);
             socket.emit('data_connection_res', {success: true})
-            SOCKET_DATA_LIST[socket.id] = data.id;
+            USERID_DATA_LIST[socket.id] = data.id;
+            SOCKET_DATA_LIST[socket.id] = socket;
             ALL_USERS[data.id] = 'online';
 
             //Envio a las web que actualicen el chat
             for(let i in SOCKET_LIST){
                 SOCKET_LIST[i].emit('new_pi', {user: data.id})
             }
+
+            //Envio a la raspberry las configuraciones actuales
+            pool.query('SELECT * from config', function(err, res){
+                if(err){
+                    console.log(err);
+                }else{
+                    config_rows = res.rows;
+
+                    config_rows.sort(function(a, b){
+                        return a.id - b.id;
+                    });
+
+                    socket.emit('inicio_configuracion', {rows: config_rows});
+                    console.log(config_rows)
+                }
+
+            });
             
         } else{
             socket.emit('data_connection_res', {success: false})
@@ -197,7 +217,7 @@ io.sockets.on('connection', function(socket) {
 
         delete SOCKET_LIST[socket.id];
 
-        let user_id = SOCKET_DATA_LIST[socket.id];
+        let user_id = USERID_DATA_LIST[socket.id];
         //Si se desconecta una raspberry
         if(user_id != null) {
             //Cambio estado a offline
@@ -206,14 +226,13 @@ io.sockets.on('connection', function(socket) {
             for(let i in SOCKET_LIST){
                 SOCKET_LIST[i].emit('delete_pi', {user: user_id})
             }
-            delete SOCKET_DATA_LIST[socket.id];   
+            delete USERID_DATA_LIST[socket.id]; 
+            delete SOCKET_DATA_LIST[socket.id];  
         }
 
     });
 
     socket.on('activar-alarma', function(data){
-
-        let sql = 'UPDATE config SET config = (?) WHERE rowid = ';
 
         pool.query('UPDATE config SET Atr = ($2) WHERE id = ($1)',[6, data.estado], (err) =>{
             if(err){
@@ -221,11 +240,13 @@ io.sockets.on('connection', function(socket) {
             }
         })
        
-        db.run(sql + CONFIG.ESTADO_ALARMA, [data.estado], (err) => {
-            if(err){
-                return console.log(err);
-            }
-        });
+        //Envio a todas las raspberries
+        let socket;
+        //Envio a las raspberries el nuevo valor actualizado
+        for(let id in SOCKET_DATA_LIST){
+            socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_estado_alarma', {estado_alarma: data.estado});
+        }
 
     })
 
@@ -294,6 +315,14 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('config-temp-range', function(data){
 
+        let socket;
+        //Envio a las raspberries el nuevo valor actualizado
+        for(let id in SOCKET_DATA_LIST){
+            socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_temp_range', {min_temp: data.min_temp, max_temp: data.max_temp});
+        }
+
+        //Guardo los valores en la base de datos
         pool.query(sql2, [CONFIG.TEMP_MIN, data.min_temp], (err, res) => {
             if(err){
                 console.log(err)
@@ -307,72 +336,67 @@ io.sockets.on('connection', function(socket) {
         })
         
         
-        db.run(sql + CONFIG.TEMP_MIN, [data.min_temp], (err) => {
-            if(err){
-                return console.log(err);
-            }
-        });
-
-        db.run(sql + CONFIG.TEMP_MAX, [data.max_temp], (err) => {
-            if(err){
-                return console.log(err);
-            }
-        });
-
-
     });
 
     socket.on('config-tiempo-muestras', function(data){
 
+        let socket;
+        //Envio a las raspberries el nuevo valor actualizado
+        for(let id in SOCKET_DATA_LIST){
+            socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_tiempo_muestras', {tiempo_muestras: data.muestras_tiempo});
+        }
+
+        //Guardar en la base de datos
         pool.query(sql2, [CONFIG.TIEMPO_MUESTREO, data.muestras_tiempo], (err, res) => {
             if(err){
                 console.log(err)
              }
         })
         
-        db.run(sql + CONFIG.TIEMPO_MUESTREO, [data.muestras_tiempo], (err) => {
-            if(err){
-                return console.log(err);
-            }
-        });
-
-
     });
 
     socket.on('config-email', function(data){
 
+        let socket;
+        //Envio a las raspberries el nuevo valor actualizado
+        for(let id in SOCKET_DATA_LIST){
+            socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_email', {email: data.email});
+        }
+
+        //Guardar en la base de datos
         pool.query(sql2, [CONFIG.EMAIL, data.email], (err, res) => {
             if(err){
                 console.log(err)
              }
         })
 
-        db.run(sql + CONFIG.EMAIL, [data.email], (err) => {
-            if(err){
-                return console.log(err);
-            }
-        });
     });
 
     socket.on('config-tiempo-alerta', function(data){
 
+
+        let socket;
+        //Envio a las raspberries el nuevo valor actualizado
+        for(let id in SOCKET_DATA_LIST){
+            socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_tiempo_alerta', {tiempo_alerta: data.alerta_tiempo});
+        }
+
+        //Guarda en la base de datos
         pool.query(sql2, [CONFIG.TIEMPO_ALARMAS, data.alerta_tiempo], (err, res) => {
             if(err){
                 console.log(err)
              }
         })
 
-        db.run(sql + CONFIG.TIEMPO_ALARMAS, [data.alerta_tiempo], (err) => {
-            if(err){
-                return console.log(err);
-            }
-        });
     });
 
     socket.on('python', function(data){
         //Si esta habilitado para enviar proceso
-        if(SOCKET_DATA_LIST[socket.id] != null){
-            pool.query("INSERT INTO test2 values ($1,$2,$3)", [data.date, data.temp, SOCKET_DATA_LIST[socket.id]], (err) => {
+        if(USERID_DATA_LIST[socket.id] != null){
+            pool.query("INSERT INTO test2 values ($1,$2,$3)", [data.date, data.temp, USERID_DATA_LIST[socket.id]], (err) => {
                 if(err){
                     return console.log(err);
                 }
