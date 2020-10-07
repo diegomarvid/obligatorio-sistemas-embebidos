@@ -60,12 +60,11 @@ def inicio_configuracion(data):
     
     config = []
    
-    for x in data:
-      array = data[x]
-      for i in array:
-        #print(i['atr'])
-        config.append(i['atr'])
-        cont = cont + 1
+    
+    rows = data['rows']
+    for i in rows:
+      config.append(i['atr'])
+      cont = cont + 1
         
     TL = int(config[0])
     TH = int(config[1])
