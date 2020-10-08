@@ -109,7 +109,7 @@ function login(){
 socket.on('logInResponse', function(data) {
     if(data.success) {
         Notiflix.Loading.Standard();
-        Notiflix.Loading.Remove(1);
+        Notiflix.Loading.Remove(1000);
 
         setTimeout(function(){
             $("body").css("background","#DCDCDC");
@@ -119,7 +119,7 @@ socket.on('logInResponse', function(data) {
             document.getElementById('config-id').setAttribute("href",data.config_link);
             TEMP_MIN = data.min_temp;
             TEMP_MAX = data.max_temp;
-        }, 1)
+        }, 1000)
         
     } else{
         Notiflix.Notify.Failure('Usuario o contraseña invalido');

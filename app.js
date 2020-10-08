@@ -90,7 +90,6 @@ app.get('/', function(req, res) {
     if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
     }
-    
     console.log(ip)
 });
 
@@ -130,19 +129,10 @@ ALL_USERS = {};
 
 let io = require('socket.io')(serv, {});
 
-let db = new sqlite3.Database('./db/temp.db', (err) => {
-    if (err) {
-      console.error(err.message);
-    }
-    console.log('Connected to temp database.');
-  });
-
 io.sockets.on('connection', function(socket) {
 
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
-
-    
 
     socket.on('data_connection', function(data){
 
@@ -205,13 +195,6 @@ io.sockets.on('connection', function(socket) {
         
     })
 
-    // db.all('SELECT * from config', function(err, rows){
-    //     if(err){
-    //         console.log(err);
-    //     }else{ 
-    //         socket.emit('config-update', {rows: rows});
-    //     }
-    // })
     
     socket.on('disconnect', function () {
 
@@ -411,17 +394,6 @@ io.sockets.on('connection', function(socket) {
 });
 
 
-function getDate() {
-    return new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
-}
-
-let sql = "SELECT rowid FROM test WHERE date > '2020-09-11 19:40:00' "
-
-// db.all(sql, function(err,rows){
-//     console.log(rows)
-// })
-
-
 let socket;
 let last_temp = 69;
 let config_rows;
@@ -445,16 +417,6 @@ setInterval(function() {
         }
     })
 
-    // db.all('SELECT * from config', function(err, rows){
-    //     if(err){
-    //         console.log(err);
-    //     }else{
-    //         config_rows = rows;         
-    //         MIN_TEMP = rows[0].config;
-    //         MAX_TEMP = rows[1].config;
-    //     }
-    // });
-
     pool.query('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, res){
 
         if(err) {
@@ -473,9 +435,6 @@ setInterval(function() {
         }
     }
 
-
-   
-       
 
 }, 800);
 
