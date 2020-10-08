@@ -173,7 +173,7 @@ io.sockets.on('connection', function(socket) {
                     });
 
                     socket.emit('inicio_configuracion', {rows: config_rows});
-                    console.log(config_rows)
+                    
                 }
 
             });

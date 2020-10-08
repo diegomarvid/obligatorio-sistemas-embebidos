@@ -1,16 +1,34 @@
-#!/usr/bin/python3
+# -*- coding: utf-8 -*
 
 import RPi.GPIO as GPIO
 import statistics
 import math
 import socketio
-import threading
+import smtplib
 import time
 from time import sleep
-import json
+
 
 import datetime
 from datetime import datetime
+
+#-----Funcion para inicializar servidor smtp--------#
+def init_smtp():
+
+    username = 'tempsysrasp@gmail.com'
+    password = 'tempsys159357'
+
+    server = smtplib.SMTP('smtp.gmail.com:587')
+    server.starttls()
+    server.login(username,password)
+
+    return server
+
+def send_mail(server, destiny, subject, body):
+
+    fromaddr = 'tempsysrasp@gmail.com'  
+    msg = 'Subject: ' + subject +'\n\n'+ body
+    server.sendmail(fromaddr, destiny, msg)
 
 
 # Coneccion con el servidor
@@ -133,6 +151,11 @@ def update_estado_alarma(data):
 def disconnect():
     print('Se perdio la conexion con el servidor')
 
+#Evento de re conexion con el servidor
+@sio.event
+def connect():
+    print('Se volvio a conectar al servidor')
+
 
 # Set up de los pines
 GPIO.setmode(GPIO.BCM)
@@ -182,23 +205,39 @@ def obtener_temp(Rt):
     T_inv = T_inv
     return 1/T_inv - 273
 
+def muestrear():
+    descarga(tiempo_sleep)
+    Rt = obtener_r(tiempo_carga(), C, vcc, V_HIGH)
+    temp = obtener_temp(Rt)
+    return round(temp)
+
 #----------------------------------------------------------#
 tiempo_ultima_medida = datetime.now()
+tiempo_ultima_alarma = datetime.now()
+
+
 #Loop general del sistema
+global temp
+
+server = init_smtp()
+
 while True:
 
     tiempo_actual = datetime.now()
 
     if  (tiempo_actual - tiempo_ultima_medida).total_seconds() >= tiempo_muestras:
-        print((tiempo_actual - tiempo_ultima_medida).total_seconds())
-        print(tiempo_muestras)
-        descarga(tiempo_sleep)
-        Rt = obtener_r(tiempo_carga(), C, vcc, V_HIGH)
-        temp = obtener_temp(Rt)
-        temp = round(temp)
+        temp = muestrear()
         tiempo_ultima_medida = datetime.now()
-        # print(temp)
         sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': temp})
+
+    if estado_alarma == True:
+        if (tiempo_actual - tiempo_ultima_alarma).total_seconds() >= (TA)*60:
+            if temp >= TH:
+                send_mail(server, email, 'Alerta temperatura alta', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TH, temp))
+                tiempo_ultima_alarma = datetime.now()
+            if temp <= TL:
+                send_mail(server, email, 'Alerta temperatura baja', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TL, temp))
+                tiempo_ultima_alarma = datetime.now() 
 
    
     
