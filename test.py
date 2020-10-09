@@ -72,7 +72,7 @@ def data_connection_res(data):
     return
 
 @sio.event
-def inicio_configuracion(data):
+def config_update(data):
 
     global TL
     global TH
@@ -90,6 +90,8 @@ def inicio_configuracion(data):
     for i in rows:
       config.append(i['atr'])
       cont = cont + 1
+
+    print(config)  
         
     TL = int(config[0])
     TH = int(config[1])

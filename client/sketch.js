@@ -1,13 +1,17 @@
+//Variable de socket
 let socket = io();
 
+//Estado de inicio de sesion
 let loginState = true;  
 
+//Elementos HTML
 let loginDiv = document.getElementById('loginDiv');
 let controlDiv = document.getElementById('controlDiv');
 let containerDiv = document.getElementById('containerDiv');
 var ctx = document.getElementById('myChart').getContext('2d');
 
 
+//Variables de inicializacion
 let start_date = "";
 let end_date = "";
 
@@ -18,6 +22,8 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
+
+//Variables de configuracion SOLO actualizada al INICIO DE SESION
 socket.on('config_update', function(data){
 
     let estado;
@@ -40,6 +46,26 @@ socket.on('config_update', function(data){
     $('#alarma-id').prop('checked',estado);
 })
 
+//Variable de estado alarma cuando se detecta un cambio
+socket.on('update_estado_alarma', function(data){
+
+    let estado = data.estado_alarma;
+
+    if(estado == true){
+        console.log(typeof estado)
+        $('#alarma-txt-id').text('Alarma activada');
+        estado = true;    
+    } else{
+     
+        console.log(typeof estado)
+        $('#alarma-txt-id').text('Alarma desactivada');
+        estado = false;
+    }
+
+    $('#alarma-id').prop('checked',estado);
+
+});
+
 function wait(ms){
     var start = new Date().getTime();
     var end = start;
@@ -48,6 +74,8 @@ function wait(ms){
    }
  }
 
+
+//Codigo para armar csv
 function convertArrayOfObjectsToCSV(args) {  
     var result, ctr, keys, columnDelimiter, lineDelimiter, data;
 
@@ -79,6 +107,7 @@ function convertArrayOfObjectsToCSV(args) {
     return result;
 }
 
+//Codigo para descargar csv
 function downloadCSV(args, arr) {  
     var data, filename, link;
     var csv = convertArrayOfObjectsToCSV({
@@ -99,6 +128,7 @@ function downloadCSV(args, arr) {
     link.click();
 }
 
+//Obtener datos del form de login
 function login(){
     let username = $('#username_id').val();
     let password = $('#password_id').val();
@@ -106,17 +136,24 @@ function login(){
     return;
 }
 
+//Respuesta de inicio de sesion
 socket.on('logInResponse', function(data) {
+
     if(data.success) {
+        //Animacion de loading
         Notiflix.Loading.Standard();
         Notiflix.Loading.Remove(1000);
 
         setTimeout(function(){
+
+            //Ocultar div de login y mostrar div principal
             $("body").css("background","#DCDCDC");
             loginState = false;
             loginDiv.style.display = 'none';
             containerDiv.style.display = 'inline';
+            //Actualizar link de config
             document.getElementById('config-id').setAttribute("href",data.config_link);
+            //Actualizar variables iniciales de rango de temperatura
             TEMP_MIN = data.min_temp;
             TEMP_MAX = data.max_temp;
         }, 1000)
@@ -128,9 +165,12 @@ socket.on('logInResponse', function(data) {
 
 });
 
+//-------------------------------Actualizacion de chat-----------------------------------//
+
 let pis = [];
 let pis_off = [];
 
+//Funcion para hacer html de usuario de chat
 function create_html_card(user, online = true){
 
     let state_html = '"online_icon"';
@@ -215,6 +255,8 @@ socket.on('delete_pi', function(data){
     
 });
 
+//----------------------------------------------------------------------------------------//
+
 socket.on('tempCSV', function(data){
     downloadCSV({ filename: "temperaturas.csv" }, data.temp);
 })
@@ -238,8 +280,8 @@ Notiflix.Block.Init({
 
 $('#alarma-id').click(function(){
     let estado = $('#alarma-id').is(':checked');
-    Notiflix.Block.Circle('div#alarma-div', 'Loading...');
-    Notiflix.Block.Remove('div#alarma-div', 1600);
+    // Notiflix.Block.Circle('div#alarma-div', 'Loading...');
+    // Notiflix.Block.Remove('div#alarma-div', 1600);
     socket.emit('activar-alarma', {estado: estado});
 
     let html =  '<li>' + '<div class="d-flex bd-highlight">' + '<div class="img_cont">'

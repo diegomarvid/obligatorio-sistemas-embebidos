@@ -1,11 +1,7 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const CryptoJS = require("crypto-js");
-const { rootCertificates } = require('tls');
-const { ALL } = require('dns');
-
 const { Pool } = require('pg');
-const { config } = require('process');
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgres://bpnglisbxsblsw:9f0fd7e900530dc873613357b58a653b4ca786f8165d79e62ec91714807abd0e@ec2-52-73-199-211.compute-1.amazonaws.com:5432/dfhs19f5g32p3h',
     ssl: {
@@ -23,42 +19,13 @@ pool.connect((err, client, release) => {
     
 })
 
-// pool.query('INSERT INTO config VALUES ($1, $2)', [6, '10'], (err, res) => {
-//     if(err){
-//         console.log(err)
-//     }
-// })
-
-
-
-
-// pool.query('ALTER TABLE CONFIG ADD UNIQUE (id)', (err, res) => {
-//     if(err){
-//         console.log(err)
-//     }
-//     console.log(res)
-// })
-
-    // pool.query('DELETE FROM test2 WHERE date = ($1)',['a'], (err, res) => {
-    //     if(err){
-    //         console.log(err)
-    //     }
-    // })
-
-
-// pool.query('CREATE TABLE config (config STRING);', (err, res) => {
-//     if(err){
-//         console.log(err)
-//     }
-//     console.log(res)
-// })
-
 let MAX_TEMP = 50;
 let MIN_TEMP = 40;
 
 const USER = 'root';
 const KEY = 'admin';
 
+//ID asociado a atributo de configuracion
 const CONFIG = {
     TEMP_MIN: 1,
     TEMP_MAX: 2,
@@ -68,9 +35,7 @@ const CONFIG = {
     ESTADO_ALARMA: 6
 };
 
-let tiempo_muestreo = 5;
-let tiempo_alerta = 5;
-let email = 'diegomarvid99@gmail.com';
+//----------------String encriptado de configuracion---------------------------//
 
 let config_encrypt_str = CryptoJS.AES.encrypt(USER,KEY).toString();
 
@@ -79,13 +44,19 @@ config_encrypt_str = config_encrypt_str.split('+').join('');
 
 let config_route = '/' + config_encrypt_str;
 
+//-----------------------------------------------------------------------------//
+
 const app = express();
 
 let serv = require('http').Server(app);
 
 let banned_ips = [];
 
+
+//Obtener pagina principal
 app.get('/', function(req, res) {
+
+    //Si la ip no esta en la lista de baneados se devuelve el archivo
     ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
@@ -93,23 +64,25 @@ app.get('/', function(req, res) {
     console.log(ip)
 });
 
+//Obtener pagina de configuracion
 app.get(config_route, function(req, res) {
     res.sendFile(__dirname + '/client/config.html');
 });
 
+//Tramite de SSH
 app.get('/.well-known/pki-validation/1B5A3397F83271BD39D8721EFAC6C701.txt', function(req, res){
     res.sendFile(__dirname + '/1B5A3397F83271BD39D8721EFAC6C701.txt');
 })
 
+//Codigo para devolver archivos
 app.use('/client', express.static(__dirname + '/client'));
 
+//Correr en puerto de HEROKU o local en 8080
 serv.listen(process.env.PORT || 8080, function() {
     console.log("Server listening at 8080");
 });
 
-
-
-
+//Logica para verificar raspberries repetidas
 function check_repetead_user(user){
     for(let i in USERID_DATA_LIST){
         if(user == USERID_DATA_LIST[i]){
@@ -120,62 +93,63 @@ function check_repetead_user(user){
 }
 
 
-
-
+//Lista de sockets de clientes web
 SOCKET_LIST = {};
+//Lista de nombres de usuarios de raspberries
 USERID_DATA_LIST = {};
+//Lista de sockets de raspberries
 SOCKET_DATA_LIST = {};
+//Lista de todos los usuarios de raspberries que existieron
 ALL_USERS = {};
 
 let io = require('socket.io')(serv, {});
 
+//Nueva conexion
 io.sockets.on('connection', function(socket) {
 
+    //Identificador unico de conexion
     socket.id = Math.random();
+
+    //Se agrega a la lista de clientes web
     SOCKET_LIST[socket.id] = socket;
 
+    //Conexion de raspberry
     socket.on('data_connection', function(data){
 
+        //Como no es cliente web lo remuevo de la lista
         delete SOCKET_LIST[socket.id];
 
-
+        //Logica de inicio de sesion
+        //Solo usuarios que empiezan con 'pi'
         if(data.id.substring(0,2) == 'pi' && check_repetead_user(data.id) == false){   
+
             console.log(`raspberry [${data.id}] connected`);
+
+            //Envio de conexion exitosa
             socket.emit('data_connection_res', {success: true})
+            
+            //Se agrega a las listas correspondientes
             USERID_DATA_LIST[socket.id] = data.id;
             SOCKET_DATA_LIST[socket.id] = socket;
             ALL_USERS[data.id] = 'online';
 
-            //Envio a las web que actualicen el chat
+            //Envio a los clientes web que actualicen el chat
             for(let i in SOCKET_LIST){
                 SOCKET_LIST[i].emit('new_pi', {user: data.id})
             }
-
-            //Envio a la raspberry las configuraciones actuales
-            pool.query('SELECT * from config', function(err, res){
-                if(err){
-                    console.log(err);
-                }else{
-                    config_rows = res.rows;
-
-                    config_rows.sort(function(a, b){
-                        return a.id - b.id;
-                    });
-
-                    socket.emit('inicio_configuracion', {rows: config_rows});
-                    
-                }
-
-            });
             
         } else{
+            //Conexion fallida con raspberry
             socket.emit('data_connection_res', {success: false})
         }
 
 
     })
 
+    //Inicio de sesion
     socket.on('logIn', function(data) {
+
+        //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str, max_temp: MAX_TEMP, min_temp: MIN_TEMP});
             //Enviar listas de pis al conectarse
@@ -186,11 +160,20 @@ io.sockets.on('connection', function(socket) {
         
     });
 
+    //Mandar valores actuales de configuracion a nuevos clientes
     pool.query('SELECT * from config', function(err, res){
         if(err){
             console.log(err)
         }else{
-            socket.emit('config-update', {rows: res.rows});
+
+            config_rows = res.rows
+
+            //Organizo por id para disminuir logica en raspberry
+            config_rows.sort(function(a, b){
+                return a.id - b.id;
+            });
+
+            socket.emit('config_update', {rows: config_rows});
         }
         
     })
@@ -217,7 +200,7 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('activar-alarma', function(data){
 
-        pool.query('UPDATE config SET Atr = ($2) WHERE id = ($1)',[6, data.estado], (err) =>{
+        pool.query('UPDATE config SET Atr = ($2) WHERE id = ($1)',[CONFIG.ESTADO_ALARMA, data.estado], (err) =>{
             if(err){
                 return console.log(err);
             }
@@ -231,13 +214,20 @@ io.sockets.on('connection', function(socket) {
             socket.emit('update_estado_alarma', {estado_alarma: data.estado});
         }
 
+        //Envio a todos los clientes web
+        for(let id in SOCKET_LIST){
+            socket = SOCKET_LIST[id];
+            socket.emit('update_estado_alarma', {estado_alarma: data.estado});
+        }
+
     })
 
+    //Cuando llega del calendario de la pagina
     socket.on('dateRange', function(data){
 
-
-
         pool.query('SELECT * FROM test2 WHERE date BETWEEN $1 AND $2', [data.startDate, data.endDate], function(err, res){
+
+            //Codigo de promediado de horas
             let rows = res.rows;
 
             if(rows != null && rows.length > 0) {
@@ -250,33 +240,41 @@ io.sockets.on('connection', function(socket) {
                 let obj;
                 let temperaturas_promedio = [];
 
+                //Si el boton de descargar esta en ON, enviar el csv
                 if(data.download == true){
                     socket.emit('tempCSV', {temp: rows});
                 }
 
                 let i = 0;
 
+                //Mientras estoy en la lista de datos
                 while(i < rows.length){
-
+                    
+                    //Mientras no paso una hora y no estoy en el final
                     while(date_aux - date < 3600*1000 && i+contador < rows.length){
 
+                        //Agrega el valor de temperatura para promediar
                         suma_temp += rows[i+contador].temperature;
 
                         contador++;
 
+                        //Si no estoy en el final, avanzo una fecha
                         if( i+contador <= rows.length-1){
                             date_aux = new Date(rows[i+contador].date);
                         }
                     }
 
 
-
+                    //Calculo promedio
                     promedio_temp = suma_temp / contador;
 
+                    //Obtengo la fecha de la primer temperatura
+                    //Agarro el objeto para tener tambien la fecha y temperatura
                     obj = rows[i]
                     obj.temperature = promedio_temp;
                     temperaturas_promedio.push(obj);
 
+                    //Actualizacion de variables
                     date = date_aux;
                     i += contador;
                     contador=0;
@@ -284,6 +282,7 @@ io.sockets.on('connection', function(socket) {
 
                 }
                
+                //Mando array de promedios
                 socket.emit('tempUpdate', temperaturas_promedio);
                 
             }
@@ -291,9 +290,8 @@ io.sockets.on('connection', function(socket) {
         });
     });
 
-    //----------------Sockets de configuracion---------------------//
+    //---------------------------Sockets de configuracion---------------------------------//
 
-    let sql = 'UPDATE config SET config = (?) WHERE rowid = ';
     let sql2 = 'UPDATE config SET Atr = ($2) WHERE id = ($1)';
 
     socket.on('config-temp-range', function(data){
@@ -312,6 +310,7 @@ io.sockets.on('connection', function(socket) {
              }
         })
 
+        //Guardo los valores en la base de datos
         pool.query(sql2, [CONFIG.TEMP_MAX, data.max_temp], (err, res) => {
             if(err){
                 console.log(err)
@@ -376,7 +375,11 @@ io.sockets.on('connection', function(socket) {
 
     });
 
+    //-------------------------------------------------------------------------------------------------------------//
+
+    //Leer temperatura de las raspberries
     socket.on('python', function(data){
+
         //Si esta habilitado para enviar proceso
         if(USERID_DATA_LIST[socket.id] != null){
             pool.query("INSERT INTO test2 values ($1,$2,$3)", [data.date, data.temp, USERID_DATA_LIST[socket.id]], (err) => {
@@ -398,8 +401,11 @@ let socket;
 let last_temp = 69;
 let config_rows;
 
+//Loop para clientes web
+
 setInterval(function() {
 
+    //Selecciono los valores de rango de temperatura de la base de datos de configuracion
     pool.query('SELECT * from config', function(err, res){
         if(err){
             console.log(err);
@@ -417,6 +423,7 @@ setInterval(function() {
         }
     })
 
+    //Selecciono la ultima temperatura de la tabla de temperaturas
     pool.query('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, res){
 
         if(err) {
@@ -427,9 +434,9 @@ setInterval(function() {
 
     });
  
+    //Envio los datos seleccionados a los clientes web
     for(let i in SOCKET_LIST){
         socket = SOCKET_LIST[i];
-        socket.emit('config_update', {rows: config_rows});
         if(last_temp != null){
             socket.emit('lastTemp', {temp: last_temp, min_temp: MIN_TEMP, max_temp: MAX_TEMP} );
         }
