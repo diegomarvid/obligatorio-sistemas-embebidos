@@ -150,7 +150,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('logIn', function(data) {
 
         var client_ip_address = socket.request.connection.remoteAddress;
-        console.log(client_ip_address)
+        console.log("En socket es: ", ip)
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
