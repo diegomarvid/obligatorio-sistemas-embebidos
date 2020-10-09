@@ -236,6 +236,7 @@ while True:
 
     if  (tiempo_actual - tiempo_ultima_medida).total_seconds() >= tiempo_muestras:
         temp = muestrear()
+        print(temp)
         tiempo_ultima_medida = datetime.now()
         if (temp > TEMP_GND) and (temp < TEMP_NAN):
             sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': temp})

@@ -178,6 +178,18 @@ io.sockets.on('connection', function(socket) {
         
     })
 
+    //Mando ultimo valor de temperatura a nuevo cliente
+    //Selecciono la ultima temperatura de la tabla de temperaturas
+    pool.query('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, res){
+        let last_temp = 0;
+        if(err) {
+            console.log(err);
+        } else{
+            last_temp = res.rows[0].temperature;
+            socket.emit('lastTemp', {temp: last_temp})
+        }
+
+    });
     
     socket.on('disconnect', function () {
 
@@ -404,6 +416,13 @@ io.sockets.on('connection', function(socket) {
     //Leer temperatura de las raspberries
     socket.on('python', function(data){
 
+        //Envio a todos los clientes la temperatura nueva
+        let sock;
+        for(let id in SOCKET_LIST){
+            sock = SOCKET_LIST[id];
+            sock.emit('lastTemp', {temp: data.temp} );
+        }
+        
         //Si esta habilitado para enviar proceso
         if(USERID_DATA_LIST[socket.id] != null){
             pool.query("INSERT INTO test2 values ($1,$2,$3)", [data.date, data.temp, USERID_DATA_LIST[socket.id]], (err) => {
@@ -421,34 +440,4 @@ io.sockets.on('connection', function(socket) {
 });
 
 
-let socket;
-let last_temp;
-let config_rows;
-
-//Loop para clientes web
-
-setInterval(function() {
-
-
-    //Selecciono la ultima temperatura de la tabla de temperaturas
-    pool.query('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, res){
-
-        if(err) {
-            console.log(err);
-        } else{
-            last_temp = res.rows[0].temperature;
-        }
-
-    });
- 
-    //Envio los datos seleccionados a los clientes web
-    for(let i in SOCKET_LIST){
-        socket = SOCKET_LIST[i];
-        if(last_temp != null){
-            socket.emit('lastTemp', {temp: last_temp} );
-        }
-    }
-
-
-}, 800);
 

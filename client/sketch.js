@@ -10,7 +10,6 @@ let controlDiv = document.getElementById('controlDiv');
 let containerDiv = document.getElementById('containerDiv');
 var ctx = document.getElementById('myChart').getContext('2d');
 
-
 //Variables de inicializacion
 let start_date = "";
 let end_date = "";
@@ -21,6 +20,38 @@ let TEMP_MIN = 5;
 let TEMP_MAX = 80;
 
 let config_link = "";
+
+function actualizar_gauge(){
+
+    let chart;
+
+    try {
+        chart = new google.visualization.Gauge(document.getElementById('chart_div'));
+
+        options = {
+            width: 220, height: 220,
+            redFrom: TEMP_MAX, redTo: 100,
+            greenColor: '#6A99FF',
+            greenFrom:0, greenTo: TEMP_MIN,
+            minorTicks: 5
+        };
+    
+        var data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['ºC', temp_actual]
+        ]);
+    
+        chart.draw(data, options);
+
+    } catch(error){
+        console.log(error)
+        console.log("Intente reiniciar la pagina")
+        location.reload();
+    }
+    
+
+   
+}
 
 //Variables de configuracion SOLO actualizada al INICIO DE SESION
 socket.on('config_update', function(data){
@@ -63,6 +94,10 @@ socket.on('update_temp_range', function(data){
     TEMP_MIN = data.min_temp;
     TEMP_MAX = data.max_temp;
     console.log('Si cambian me llega:', TEMP_MIN, TEMP_MAX)
+
+    //Actualizo gauge
+    actualizar_gauge()
+
 })
 
 //Variable de estado alarma cuando se detecta un cambio
@@ -312,52 +347,14 @@ $('#alarma-id').click(function(){
 
 });
 
+socket.on('lastTemp', function(data){
 
+    temp_actual = data.temp;
+ 
+    actualizar_gauge();
 
-google.charts.load('current', {'packages':['gauge']});
-google.charts.setOnLoadCallback(drawChart);
-
+});
               
-function drawChart() {
-
-    chart = new google.visualization.Gauge(document.getElementById('chart_div'));
-
-    var options = {
-        width: 220, height: 220,
-        redFrom: TEMP_MAX, redTo: 100,
-        greenColor: '#6A99FF',
-        greenFrom:0, greenTo: TEMP_MIN,
-        minorTicks: 5
-    };
-
-    
-    socket.on('lastTemp', function(data){
-
-        // temp_actual = data.temp.temperature;
-        temp_actual = data.temp
-        
-        options = {
-            width: 220, height: 220,
-            redFrom: TEMP_MAX, redTo: 100,
-            greenColor: '#6A99FF',
-            greenFrom:0, greenTo: TEMP_MIN,
-            minorTicks: 5
-        };
-
-        console.log("En last temp", TEMP_MIN, TEMP_MAX)
-
-        var data = google.visualization.arrayToDataTable([
-            ['Label', 'Value'],
-            ['ºC', temp_actual]
-        ]);
-
-        chart.draw(data, options);
-
-        
-    });
-
-
-}
 
 let n = 0;
 
