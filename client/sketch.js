@@ -22,17 +22,24 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
-
 //Variables de configuracion SOLO actualizada al INICIO DE SESION
 socket.on('config_update', function(data){
+
+    console.log('update de config')
 
     let estado;
 
     for(let i in data.rows){
         if(data.rows[i].id == 6){
             estado = data.rows[i].atr;   
-            break;
         }
+        if(data.rows[i].id == 1){
+            TEMP_MIN = data.rows[i].atr;
+        }
+        if(data.rows[i].id == 2){
+            TEMP_MAX = data.rows[i].atr;
+        }
+
     }
     
     if(estado == 'true'){
@@ -44,6 +51,18 @@ socket.on('config_update', function(data){
     }
 
     $('#alarma-id').prop('checked',estado);
+
+    console.log("En config",TEMP_MIN, TEMP_MAX)
+
+
+})
+
+
+
+socket.on('update_temp_range', function(data){
+    TEMP_MIN = data.min_temp;
+    TEMP_MAX = data.max_temp;
+    console.log('Si cambian me llega:', TEMP_MIN, TEMP_MAX)
 })
 
 //Variable de estado alarma cuando se detecta un cambio
@@ -153,9 +172,6 @@ socket.on('logInResponse', function(data) {
             containerDiv.style.display = 'inline';
             //Actualizar link de config
             document.getElementById('config-id').setAttribute("href",data.config_link);
-            //Actualizar variables iniciales de rango de temperatura
-            TEMP_MIN = data.min_temp;
-            TEMP_MAX = data.max_temp;
         }, 1000)
         
     } else{
@@ -314,15 +330,12 @@ function drawChart() {
         minorTicks: 5
     };
 
-
+    
     socket.on('lastTemp', function(data){
 
         // temp_actual = data.temp.temperature;
         temp_actual = data.temp
         
-        TEMP_MIN = data.min_temp;
-        TEMP_MAX = data.max_temp;
-
         options = {
             width: 220, height: 220,
             redFrom: TEMP_MAX, redTo: 100,
@@ -330,6 +343,8 @@ function drawChart() {
             greenFrom:0, greenTo: TEMP_MIN,
             minorTicks: 5
         };
+
+        console.log("En last temp", TEMP_MIN, TEMP_MAX)
 
         var data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],

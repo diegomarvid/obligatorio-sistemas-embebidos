@@ -151,7 +151,7 @@ io.sockets.on('connection', function(socket) {
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
-            socket.emit('logInResponse', {success: true, config_link: config_encrypt_str, max_temp: MAX_TEMP, min_temp: MIN_TEMP});
+            socket.emit('logInResponse', {success: true, config_link: config_encrypt_str});
             //Enviar listas de pis al conectarse
             socket.emit('init_pis', {users: ALL_USERS});
         } else{
@@ -303,6 +303,12 @@ io.sockets.on('connection', function(socket) {
             socket.emit('update_temp_range', {min_temp: data.min_temp, max_temp: data.max_temp});
         }
 
+        //Envio a los clientes web el nuevo valor actualizado
+        for(let id in SOCKET_LIST){
+            socket = SOCKET_LIST[id];
+            socket.emit('update_temp_range', {min_temp: data.min_temp, max_temp: data.max_temp});
+        }
+
         //Guardo los valores en la base de datos
         pool.query(sql2, [CONFIG.TEMP_MIN, data.min_temp], (err, res) => {
             if(err){
@@ -329,6 +335,12 @@ io.sockets.on('connection', function(socket) {
             socket.emit('update_tiempo_muestras', {tiempo_muestras: data.muestras_tiempo});
         }
 
+        //Envio a los clientes web el nuevo valor actualizado
+        for(let id in SOCKET_LIST){
+            socket = SOCKET_LIST[id];
+            socket.emit('update_tiempo_muestras', {tiempo_muestras: data.muestras_tiempo});
+        }
+
         //Guardar en la base de datos
         pool.query(sql2, [CONFIG.TIEMPO_MUESTREO, data.muestras_tiempo], (err, res) => {
             if(err){
@@ -344,6 +356,12 @@ io.sockets.on('connection', function(socket) {
         //Envio a las raspberries el nuevo valor actualizado
         for(let id in SOCKET_DATA_LIST){
             socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_email', {email: data.email});
+        }
+
+        //Envio a los clientes web el nuevo valor actualizado
+        for(let id in SOCKET_LIST){
+            socket = SOCKET_LIST[id];
             socket.emit('update_email', {email: data.email});
         }
 
@@ -363,6 +381,12 @@ io.sockets.on('connection', function(socket) {
         //Envio a las raspberries el nuevo valor actualizado
         for(let id in SOCKET_DATA_LIST){
             socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_tiempo_alerta', {tiempo_alerta: data.alerta_tiempo});
+        }
+
+        //Envio a los clientes web el nuevo valor actualizado
+        for(let id in SOCKET_LIST){
+            socket = SOCKET_LIST[id];
             socket.emit('update_tiempo_alerta', {tiempo_alerta: data.alerta_tiempo});
         }
 
@@ -398,30 +422,13 @@ io.sockets.on('connection', function(socket) {
 
 
 let socket;
-let last_temp = 69;
+let last_temp;
 let config_rows;
 
 //Loop para clientes web
 
 setInterval(function() {
 
-    //Selecciono los valores de rango de temperatura de la base de datos de configuracion
-    pool.query('SELECT * from config', function(err, res){
-        if(err){
-            console.log(err);
-        }else{
-            config_rows = res.rows;
-
-            for(let i in res.rows){
-                if(res.rows[i].id == '1'){
-                    MIN_TEMP = res.rows[i].atr;
-                }
-                if(res.rows[i].id == '2'){
-                    MAX_TEMP =res.rows[i].atr;
-                }
-            }                    
-        }
-    })
 
     //Selecciono la ultima temperatura de la tabla de temperaturas
     pool.query('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, res){
@@ -438,7 +445,7 @@ setInterval(function() {
     for(let i in SOCKET_LIST){
         socket = SOCKET_LIST[i];
         if(last_temp != null){
-            socket.emit('lastTemp', {temp: last_temp, min_temp: MIN_TEMP, max_temp: MAX_TEMP} );
+            socket.emit('lastTemp', {temp: last_temp} );
         }
     }
 

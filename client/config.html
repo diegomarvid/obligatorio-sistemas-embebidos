@@ -426,6 +426,29 @@
               
             });
 
+            socket.on('update_temp_range', function (data){
+
+              $('#h-temp-min').text(data.min_temp + ' ºC');
+              $('#h-temp-max').text(data.max_temp + ' ºC');
+
+            });
+
+            socket.on('update_tiempo_muestras', function (data){
+              $('#h-tiempo-muestreo').text(data.tiempo_muestras + ' s');
+            });
+
+            socket.on('update_email', function (data){
+              $('#h-email').text(data.email);
+            });
+
+            socket.on('update_tiempo_alerta', function (data){
+              $('#h-tiempo-alarma').text(data.tiempo_alerta + ' m');
+            });
+
+
+
+
+
  
     
         </script>
