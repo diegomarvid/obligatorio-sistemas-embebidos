@@ -61,12 +61,15 @@ app.get('/', function(req, res) {
     if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
     }
-    console.log(ip)
+    console.log("Ip en express:", ip)
 });
 
 //Obtener pagina de configuracion
 app.get(config_route, function(req, res) {
-    res.sendFile(__dirname + '/client/config.html');
+    if(login_ips.includes(ip)){
+        res.sendFile(__dirname + '/client/config.html');
+    }
+    
 });
 
 //Tramite de SSH
@@ -106,6 +109,12 @@ let io = require('socket.io')(serv, {});
 
 //Nueva conexion
 io.sockets.on('connection', function(socket) {
+
+    var sHeaders = socket.handshake.headers;
+    console.info('[%s:%s] CONNECT', sHeaders['x-forwarded-for'], sHeaders['x-forwarded-port']);
+
+    var clientIp = socket.request.connection.remoteAddress;
+    console.log("En socket es: ", clientIp)
 
     //Identificador unico de conexion
     socket.id = Math.random();
@@ -149,12 +158,12 @@ io.sockets.on('connection', function(socket) {
     //Inicio de sesion
     socket.on('logIn', function(data) {
 
-        var client_ip_address = socket.request.connection.remoteAddress;
-        console.log("En socket es: ", ip)
+        
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str});
+            //login_ips.push(ip);
             //Enviar listas de pis al conectarse
             socket.emit('init_pis', {users: ALL_USERS});
         } else{
