@@ -21,6 +21,8 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
+
+//Funcion para actualizar gauge de temperatura
 function actualizar_gauge(){
 
     let chart;
@@ -83,9 +85,6 @@ socket.on('config_update', function(data){
 
     $('#alarma-id').prop('checked',estado);
 
-    console.log("En config",TEMP_MIN, TEMP_MAX)
-
-
 })
 
 
@@ -93,7 +92,6 @@ socket.on('config_update', function(data){
 socket.on('update_temp_range', function(data){
     TEMP_MIN = data.min_temp;
     TEMP_MAX = data.max_temp;
-    console.log('Si cambian me llega:', TEMP_MIN, TEMP_MAX)
 
     //Actualizo gauge
     actualizar_gauge()
@@ -308,45 +306,33 @@ socket.on('delete_pi', function(data){
 
 //----------------------------------------------------------------------------------------//
 
+//Descargar csv con la informacion de server
 socket.on('tempCSV', function(data){
     downloadCSV({ filename: "temperaturas.csv" }, data.temp);
 })
 
+//Cuando apretan boton de apply, se guardan las fechas
 $('input[name="datetimes"]').on('apply.daterangepicker', function(ev, picker) {
     start_date = picker.startDate.format('YYYY-MM-DD H:mm:00');
     end_date = picker.endDate.format('YYYY-MM-DD H:mm:00');    
-    console.log(start_date, end_date)
 });
 
+//Cuando apretan boton de enviar, se envian las fechas al servidor
 $('#date-range-confirm').click(function(){
     let download = $('#downloadCheck').is(":checked");
     socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download});
 })
 
-Notiflix.Block.Init({
-    backgroundColor:'#DCDCDC',
-    messageColor:'#0',
-    svgSize:'20px'
-});
 
+//Mandar estado de alarma al servidor
 $('#alarma-id').click(function(){
     let estado = $('#alarma-id').is(':checked');
-    // Notiflix.Block.Circle('div#alarma-div', 'Loading...');
-    // Notiflix.Block.Remove('div#alarma-div', 1600);
+
     socket.emit('activar-alarma', {estado: estado});
-
-    let html =  '<li>' + '<div class="d-flex bd-highlight">' + '<div class="img_cont">'
-    + '<img src="/client/resources/fondo.jpg" class="rounded-circle user_img">'
-   + '<span class="online_icon"></span>' +  '</div>'
-   + '<div class="user_info">' + '<span>Khalid</span>' + '<p>Kalid is online</p>'
-   + '</div>' + '</div>' +'</li>';
-               
-                
-    $('#test').append(html);
-
 
 });
 
+//Actualizacion de ultima temperatura
 socket.on('lastTemp', function(data){
 
     temp_actual = data.temp;
@@ -356,22 +342,24 @@ socket.on('lastTemp', function(data){
 });
               
 
-let n = 0;
-
 let temperatures = [];
 let hours = [];
-socket.on('tempUpdate', function(data) {
+socket.on('plotUpdate', function(data) {
 
     temperatures = [];
     hours = [];
    
     for (let i in data) {
+        //Obtener array de temperatura
         temperatures.push(data[i].temperature);
+        //Sacar milisegundos de fecha
         str = data[i].date.substring(0,19);
+        //Obtener array de horas
         hours.push(str)
         
     }
 
+    //Actualizar grafica
     var stackedLine = new Chart(ctx, {
         type: 'line',
         data: {
@@ -403,9 +391,6 @@ socket.on('tempUpdate', function(data) {
 });
 
               
-
-
-
 document.oncontextmenu = function(event) {
     event.preventDefault();
 }
