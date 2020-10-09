@@ -110,12 +110,6 @@ let io = require('socket.io')(serv, {});
 //Nueva conexion
 io.sockets.on('connection', function(socket) {
 
-    var sHeaders = socket.handshake.headers;
-    console.info('[%s:%s] CONNECT', sHeaders['x-forwarded-for'], sHeaders['x-forwarded-port']);
-
-    var clientIp = socket.request.connection.remoteAddress;
-    console.log("En socket es: ", clientIp)
-
     //Identificador unico de conexion
     socket.id = Math.random();
 
@@ -158,12 +152,14 @@ io.sockets.on('connection', function(socket) {
     //Inicio de sesion
     socket.on('logIn', function(data) {
 
-        
+        var sHeaders = socket.handshake.headers;
+        var ip1 = sHeaders['x-forwarded-for'];
+        console.log("En socket es: ", ip1)
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str});
-            //login_ips.push(ip);
+            login_ips.push(ip1);
             //Enviar listas de pis al conectarse
             socket.emit('init_pis', {users: ALL_USERS});
         } else{
