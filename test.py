@@ -51,6 +51,13 @@ estado_alarma = 0
 res = 17
 cap = 27
 
+#Rangos limites
+
+#Temperatura que da si se pone en tierra
+TEMP_GND = -10
+#Temperatura que da si se saca el NTC
+TEMP_NAN = 150
+
 #Establecer conexion de datos con el servidor
 sio.emit('data_connection', {'id': user})
 
@@ -169,6 +176,7 @@ C = 47.0 #uF
 vcc = 3.25
 tiempo_sleep = 4
 
+
 #--------------------Metodos de ADC----------------------#
 
 #Descarga del capacitor
@@ -182,10 +190,9 @@ def descarga(muestreo):
 #Medicion de tiempo de carga
 def tiempo_carga():
     GPIO.output(res, GPIO.HIGH)
-    contador = 0
     inicio = datetime.now()
-    while not GPIO.input(cap):
-        contador = contador + 1
+    while (not GPIO.input(cap)) and ((datetime.now() - inicio).total_seconds() < tiempo_muestras):
+        pass    
     fin = datetime.now()    
     return (fin - inicio).total_seconds()
 
@@ -217,7 +224,7 @@ tiempo_ultima_alarma = datetime.now()
 
 
 #Loop general del sistema
-global temp
+temp = 0
 
 server = init_smtp()
 
@@ -228,16 +235,24 @@ while True:
     if  (tiempo_actual - tiempo_ultima_medida).total_seconds() >= tiempo_muestras:
         temp = muestrear()
         tiempo_ultima_medida = datetime.now()
-        sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': temp})
+        if (temp > TEMP_GND) and (temp < TEMP_NAN):
+            sio.emit('python', {'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'temp': temp})
+        else:
+            print("Se pudo haber desconectado el NTC o puesto a tierra")    
 
     if estado_alarma == True:
-        if (tiempo_actual - tiempo_ultima_alarma).total_seconds() >= (TA)*60:
-            if temp >= TH:
-                send_mail(server, email, 'Alerta temperatura alta', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TH, temp))
-                tiempo_ultima_alarma = datetime.now()
-            if temp <= TL:
-                send_mail(server, email, 'Alerta temperatura baja', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TL, temp))
-                tiempo_ultima_alarma = datetime.now() 
+
+        if (temp > TEMP_GND) and (temp < TEMP_NAN):
+
+            if (tiempo_actual - tiempo_ultima_alarma).total_seconds() >= (TA)*60:
+                if temp >= TH:
+                    send_mail(server, email, 'ALERTA temperatura alta', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TH, temp))
+                    print("La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TH, temp))
+                    tiempo_ultima_alarma = datetime.now()
+                if temp <= TL:
+                    send_mail(server, email, 'ALERTA temperatura baja', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TL, temp))
+                    print("La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TL, temp))
+                    tiempo_ultima_alarma = datetime.now() 
 
    
     
