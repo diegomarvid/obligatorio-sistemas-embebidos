@@ -51,7 +51,7 @@ const app = express();
 let serv = require('http').Server(app);
 
 let banned_ips = [];
-
+let login_ips = [];
 
 //Obtener pagina principal
 app.get('/', function(req, res) {
@@ -148,6 +148,9 @@ io.sockets.on('connection', function(socket) {
 
     //Inicio de sesion
     socket.on('logIn', function(data) {
+
+        var client_ip_address = socket.request.connection.remoteAddress;
+        console.log(client_ip_address)
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){

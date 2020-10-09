@@ -231,7 +231,7 @@ function create_html_card(user, online = true){
     }
 
     let html1 = '<li>' + '<div class="d-flex bd-highlight">' + '<div class="img_cont">'
-          + '<img src="/client/resources/fondo.jpg" class="rounded-circle user_img">'
+          + '<img src="/client/resources/fondo.jpeg" class="rounded-circle user_img">'
           + '<span class=' + state_html +'></span>' + '</div>'
           +  '<div class="user_info">'  + '<span>';
     let html2 = '</span>' + '<p>';
