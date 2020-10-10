@@ -5,6 +5,7 @@ var Fingerprint = require('express-fingerprint');
 const bodyParser = require('body-parser');
 
 
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgres://bpnglisbxsblsw:9f0fd7e900530dc873613357b58a653b4ca786f8165d79e62ec91714807abd0e@ec2-52-73-199-211.compute-1.amazonaws.com:5432/dfhs19f5g32p3h',
     ssl: {
@@ -50,22 +51,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile);
 
-let serv = require('http').Server(app);
+let serv = require('https').Server(app);
 
 let login_ips = [];
-
-app.use (function (req, res, next) {
-    if (req.secure) {
-            // request was via https, so do no special handling
-            console.log('era segura')
-            next();
-    } else {
-            // request was via http, so redirect to https
-            console.log('redirigiendo')
-            res.redirect('https://' + req.headers.host + req.url);
-           
-    }
-});
 
 //Pagina de login
 app.get('/login', function(req, res){
