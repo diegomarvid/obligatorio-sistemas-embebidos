@@ -57,18 +57,20 @@ let login_ips = [];
 app.get('/', function(req, res) {
 
     //Si la ip no esta en la lista de baneados se devuelve el archivo
-    const forwarded = req.headers['x-forwarded-for']
-    const ip = forwarded ? forwarded.split(/, /)[0] : req.connection.remoteAddress
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const port = req.headers['x-forwarded-port'];
     if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
     }
-    console.log("Ip en express:", ip)
+    console.log("Ip en express:", ip, " y el puerto es: ", port)
 });
 
 //Obtener pagina de configuracion
 app.get(config_route, function(req, res) {
-    const forwarded = req.headers['x-forwarded-for']
-    const ip = forwarded ? forwarded.split(/, /)[0] : req.connection.remoteAddress
+
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const port = req.headers['x-forwarded-port'] || req.connection.remotePort;
+
     if(login_ips.includes(ip)){
         res.sendFile(__dirname + '/client/config.html');
     }
@@ -157,7 +159,8 @@ io.sockets.on('connection', function(socket) {
 
         var sHeaders = socket.handshake.headers;
         var ip1 = sHeaders['x-forwarded-for'];
-        console.log("En socket es: ", ip1)
+        let port1 = sHeaders['x-forwarded-port'];
+        console.log("En socket es: ", ip1, " con puerto: ", port1);
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
