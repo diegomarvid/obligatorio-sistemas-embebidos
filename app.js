@@ -1,6 +1,7 @@
 const express = require('express');
 const CryptoJS = require("crypto-js");
 const { Pool } = require('pg');
+var Fingerprint = require('express-fingerprint');
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgres://bpnglisbxsblsw:9f0fd7e900530dc873613357b58a653b4ca786f8165d79e62ec91714807abd0e@ec2-52-73-199-211.compute-1.amazonaws.com:5432/dfhs19f5g32p3h',
@@ -17,7 +18,7 @@ pool.connect((err, client, release) => {
     }
 
     
-})
+});
 
 const USER = 'root';
 const KEY = 'admin';
@@ -45,6 +46,14 @@ let config_route = '/' + config_encrypt_str;
 
 const app = express();
 
+app.use(Fingerprint( { parameters:[
+    Fingerprint.useragent,
+    Fingerprint.geoip ]
+}));
+
+app.set('views', __dirname + '/views');
+app.engine('html', require('ejs').renderFile);
+
 let serv = require('http').Server(app);
 
 let banned_ips = [];
@@ -53,26 +62,23 @@ let login_ips = [];
 //Obtener pagina principal
 app.get('/', function(req, res) {
 
-    //Si la ip no esta en la lista de baneados se devuelve el archivo
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const port = req.headers['x-forwarded-port'] || req.connection.remotePort;
-    const ipport = ip + ':' + port;
-    console.log(`ip+port: ${ipport}`);
+    //Obtener hash identificador
+    const ip = req.fingerprint.hash;
     
     if(banned_ips.includes(ip) == false){
-        res.sendFile(__dirname + '/client/index.html');
+        res.render('index.ejs', {ip: ip});
     }
-    console.log("Ip en express:", req.connection.localAddress, " y el puerto es: ", req.connection.localPort)
+    console.log("Client fingerprint hash: ", req.fingerprint.hash);
 });
 
 //Obtener pagina de configuracion
 app.get(config_route, function(req, res) {
 
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const port = req.headers['x-forwarded-port'] || req.connection.remotePort;
-    const ipport = ip + ':' + port;
-    if(login_ips.includes(ipport)){
-        res.sendFile(__dirname + '/client/config.html');
+    //Obtener hash identificador
+    const ip = req.fingerprint.hash;
+
+    if(login_ips.includes(ip)){
+        res.render('config.ejs');
     }
     
 });
@@ -115,11 +121,18 @@ let io = require('socket.io')(serv, {});
 //Nueva conexion
 io.sockets.on('connection', function(socket) {
 
+    let ip = null;
+
     //Identificador unico de conexion
     socket.id = Math.random();
 
     //Se agrega a la lista de clientes web
     SOCKET_LIST[socket.id] = socket;
+
+    socket.on('ip_client', function(data){
+        ip = data.ip;
+        console.log('ip: ',ip);
+    });
 
     //Conexion de raspberry
     socket.on('data_connection', function(data){
@@ -157,16 +170,15 @@ io.sockets.on('connection', function(socket) {
     //Inicio de sesion
     socket.on('logIn', function(data) {
 
-        let sHeaders = socket.handshake.headers;
-        let ip1 = sHeaders['x-forwarded-for'];
-        let port1 = sHeaders['x-forwarded-port'];
-        let ipport1 = ip1 + ':' + port1;
-        console.log("En socket es: ",ipport1);
-
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str});
-            login_ips.push(ipport1);
+
+            //Si inicio sesion y no estaba en la lista de login lo agrego
+            if(login_ips.includes(ip) == false){
+                login_ips.push(ip);
+            }   
+
             //Enviar listas de pis al conectarse
             socket.emit('init_pis', {users: ALL_USERS});
         } else{

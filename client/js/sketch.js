@@ -21,6 +21,7 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
+socket.emit('ip_client', {ip: ip});
 
 //Funcion para actualizar gauge de temperatura
 function actualizar_gauge(){
@@ -51,7 +52,7 @@ function actualizar_gauge(){
         location.reload();
     }
     
-
+    console.log(ip)
    
 }
 
