@@ -25,6 +25,9 @@ pool.connect((err, client, release) => {
 const USER = 'root';
 const KEY = 'admin';
 
+//En segundos -> equivale a media hora
+const LOGIN_TIMEOUT = 30*60;
+
 //ID asociado a atributo de configuracion
 const CONFIG = {
     TEMP_MIN: 1,
@@ -69,8 +72,8 @@ app.post('/login', function(req, res){
     
     if(username == USER && password == KEY){
 
-        if(login_ips.includes(ip) == false){
-            login_ips.push(ip);
+        if(includes_ip(ip) == false){
+            login_ips.push({ip: ip, last_login: new Date()});
         }        
         res.redirect('/');
     } else{
@@ -84,12 +87,22 @@ app.get('/', function(req, res) {
 
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
-    
-    if(login_ips.includes(ip)){
-        res.render('index.ejs', {ip: ip});
-    }else{
+
+    if(includes_ip(ip)){
+
+        if(!login_timeout(new Date(), ip)){
+            res.render('index.ejs', {ip: ip});
+        } else{
+            //Elimino de la lista
+            login_ips = login_ips.filter(x => x.ip !== ip);
+            res.redirect('/login');
+        }
+        
+    } else{
         res.redirect('/login');
     }
+       
+    
 });
 
 //Obtener pagina de configuracion
@@ -98,12 +111,18 @@ app.get('/config', function(req, res) {
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
 
-    //Si inicio sesion puede entrar a config
-    if(login_ips.includes(ip)){
-        res.render('config.ejs');
+    if(includes_ip(ip)){
+
+        if(!login_timeout(new Date(), ip)){
+            res.render('config.ejs', {ip: ip});
+        } else{
+            //Elimino de la lista
+            login_ips = login_ips.filter(x => x.ip !== ip);
+            res.redirect('/login');
+        }
+        
     } else{
-    //Sino se redirije a la pantalla principal    
-        res.redirect('/login')
+        res.redirect('/login');
     }
     
 });
@@ -130,6 +149,36 @@ function check_repetead_user(user){
     }
     return false;
 }
+
+//Logica para verificar ip repetida
+function includes_ip(ip){
+
+    let result = login_ips.filter(x => x.ip == ip);
+
+    return result.length > 0;
+
+}
+
+function login_timeout(date, ip){
+
+    let now = date;
+
+    let login_time = login_ips.filter(x => x.ip == ip);
+
+    login_time = login_time[0].last_login;
+
+    //Devuelve en milisegundos la diferencia
+    let time_difference = now - login_time;
+    time_difference /= 1000;
+
+    return time_difference > LOGIN_TIMEOUT;
+
+}
+
+
+
+
+    
 
 
 //Lista de sockets de clientes web
