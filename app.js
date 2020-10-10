@@ -59,6 +59,9 @@ app.get('/', function(req, res) {
     //Si la ip no esta en la lista de baneados se devuelve el archivo
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const port = req.headers['x-forwarded-port'];
+    const ipport = ip + ':' + port;
+    console.log(`ip+port: ${ipport}`);
+    
     if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
     }
@@ -70,8 +73,8 @@ app.get(config_route, function(req, res) {
 
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const port = req.headers['x-forwarded-port'] || req.connection.remotePort;
-
-    if(login_ips.includes(ip)){
+    const ipport = ip + ':' + port;
+    if(login_ips.includes(ipport)){
         res.sendFile(__dirname + '/client/config.html');
     }
     
@@ -157,15 +160,16 @@ io.sockets.on('connection', function(socket) {
     //Inicio de sesion
     socket.on('logIn', function(data) {
 
-        var sHeaders = socket.handshake.headers;
-        var ip1 = sHeaders['x-forwarded-for'];
+        let sHeaders = socket.handshake.headers;
+        let ip1 = sHeaders['x-forwarded-for'];
         let port1 = sHeaders['x-forwarded-port'];
-        console.log("En socket es: ", ip1, " con puerto: ", port1);
+        let ipport1 = ip1 + ':' + port1;
+        console.log("En socket es: ",ipport1);
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
             socket.emit('logInResponse', {success: true, config_link: config_encrypt_str});
-            login_ips.push(ip1);
+            login_ips.push(ipport1);
             //Enviar listas de pis al conectarse
             socket.emit('init_pis', {users: ALL_USERS});
         } else{
