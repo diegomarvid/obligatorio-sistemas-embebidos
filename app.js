@@ -41,6 +41,14 @@ const CONFIG = {
 
 const app = express();
 
+app.use(function(req,res,next) {
+    if (!/https/.test(req.protocol)){
+       res.redirect("https://" + req.headers.host + req.url);
+    } else {
+       return next();
+    } 
+  });
+
 app.use(Fingerprint( { parameters:[
     Fingerprint.useragent,
     Fingerprint.geoip ]
@@ -51,7 +59,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile);
 
-let serv = require('https').Server(app);
+let serv = require('http').Server(app);
 
 let login_ips = [];
 
