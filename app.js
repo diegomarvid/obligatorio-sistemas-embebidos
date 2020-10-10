@@ -19,9 +19,6 @@ pool.connect((err, client, release) => {
     
 })
 
-let MAX_TEMP = 50;
-let MIN_TEMP = 40;
-
 const USER = 'root';
 const KEY = 'admin';
 
@@ -58,14 +55,14 @@ app.get('/', function(req, res) {
 
     //Si la ip no esta en la lista de baneados se devuelve el archivo
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const port = req.headers['x-forwarded-port'];
+    const port = req.headers['x-forwarded-port'] || req.connection.remotePort;
     const ipport = ip + ':' + port;
     console.log(`ip+port: ${ipport}`);
     
     if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
     }
-    console.log("Ip en express:", ip, " y el puerto es: ", port)
+    console.log("Ip en express:", req.connection.localAddress, " y el puerto es: ", req.connection.localPort)
 });
 
 //Obtener pagina de configuracion
