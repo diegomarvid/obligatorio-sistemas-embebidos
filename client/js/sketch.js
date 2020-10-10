@@ -181,39 +181,39 @@ function downloadCSV(args, arr) {
     link.click();
 }
 
-//Obtener datos del form de login
-function login(){
-    let username = $('#username_id').val();
-    let password = $('#password_id').val();
-    socket.emit('logIn', {username: username, password: password});
-    return;
-}
+// //Obtener datos del form de login
+// function login(){
+//     let username = $('#username_id').val();
+//     let password = $('#password_id').val();
+//     socket.emit('logIn', {username: username, password: password});
+//     return;
+// }
 
-//Respuesta de inicio de sesion
-socket.on('logInResponse', function(data) {
+// //Respuesta de inicio de sesion
+// socket.on('logInResponse', function(data) {
 
-    if(data.success) {
-        //Animacion de loading
-        Notiflix.Loading.Standard();
-        Notiflix.Loading.Remove(1000);
+//     if(data.success) {
+//         //Animacion de loading
+//         Notiflix.Loading.Standard();
+//         Notiflix.Loading.Remove(1000);
 
-        setTimeout(function(){
+//         setTimeout(function(){
 
-            //Ocultar div de login y mostrar div principal
-            $("body").css("background","#DCDCDC");
-            loginState = false;
-            loginDiv.style.display = 'none';
-            containerDiv.style.display = 'inline';
-            //Actualizar link de config
-            document.getElementById('config-id').setAttribute("href",data.config_link);
-        }, 1000)
+//             //Ocultar div de login y mostrar div principal
+//             $("body").css("background","#DCDCDC");
+//             loginState = false;
+//             loginDiv.style.display = 'none';
+//             containerDiv.style.display = 'inline';
+//             //Actualizar link de config
+//             document.getElementById('config-id').setAttribute("href",data.config_link);
+//         }, 1000)
         
-    } else{
-        Notiflix.Notify.Failure('Usuario o contraseña invalido');
-        $('#username_id').focus();
-    }
+//     } else{
+//         Notiflix.Notify.Failure('Usuario o contraseña invalido');
+//         $('#username_id').focus();
+//     }
 
-});
+// });
 
 //-------------------------------Actualizacion de chat-----------------------------------//
 

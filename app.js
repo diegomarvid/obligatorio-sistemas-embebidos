@@ -2,6 +2,8 @@ const express = require('express');
 const CryptoJS = require("crypto-js");
 const { Pool } = require('pg');
 var Fingerprint = require('express-fingerprint');
+const bodyParser = require('body-parser');
+
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgres://bpnglisbxsblsw:9f0fd7e900530dc873613357b58a653b4ca786f8165d79e62ec91714807abd0e@ec2-52-73-199-211.compute-1.amazonaws.com:5432/dfhs19f5g32p3h',
@@ -33,17 +35,6 @@ const CONFIG = {
     ESTADO_ALARMA: 6
 };
 
-//----------------String encriptado de configuracion---------------------------//
-
-let config_encrypt_str = CryptoJS.AES.encrypt(USER,KEY).toString();
-
-//Sacar los + y / para no tener rutas erroneas
-config_encrypt_str = config_encrypt_str.split('+').join('');
-
-let config_route = '/' + config_encrypt_str;
-
-//-----------------------------------------------------------------------------//
-
 const app = express();
 
 app.use(Fingerprint( { parameters:[
@@ -51,13 +42,42 @@ app.use(Fingerprint( { parameters:[
     Fingerprint.geoip ]
 }));
 
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile);
 
 let serv = require('http').Server(app);
 
-let banned_ips = [];
 let login_ips = [];
+
+//Pagina de login
+app.get('/login', function(req, res){
+
+    //Obtener hash identificador
+    const ip = req.fingerprint.hash;
+
+    res.render('login.ejs', {ip: ip});
+});
+
+app.post('/login', function(req, res){
+ 
+    let username = req.body.username;
+    let password = req.body.password;
+
+    let ip = req.fingerprint.hash;
+    
+    if(username == USER && password == KEY){
+
+        if(login_ips.includes(ip) == false){
+            login_ips.push(ip);
+        }        
+        res.redirect('/');
+    } else{
+        res.redirect('/login');
+    }
+
+});
 
 //Obtener pagina principal
 app.get('/', function(req, res) {
@@ -65,20 +85,25 @@ app.get('/', function(req, res) {
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
     
-    if(banned_ips.includes(ip) == false){
+    if(login_ips.includes(ip)){
         res.render('index.ejs', {ip: ip});
+    }else{
+        res.redirect('/login');
     }
-    console.log("Client fingerprint hash: ", req.fingerprint.hash);
 });
 
 //Obtener pagina de configuracion
-app.get(config_route, function(req, res) {
+app.get('/config', function(req, res) {
 
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
 
+    //Si inicio sesion puede entrar a config
     if(login_ips.includes(ip)){
         res.render('config.ejs');
+    } else{
+    //Sino se redirije a la pantalla principal    
+        res.redirect('/login')
     }
     
 });
@@ -131,7 +156,6 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('ip_client', function(data){
         ip = data.ip;
-        console.log('ip: ',ip);
     });
 
     //Conexion de raspberry
@@ -172,7 +196,7 @@ io.sockets.on('connection', function(socket) {
 
         //Si es el usuario correcto
         if(data.username == USER && data.password == KEY){
-            socket.emit('logInResponse', {success: true, config_link: config_encrypt_str});
+            socket.emit('logInResponse', {success: true});
 
             //Si inicio sesion y no estaba en la lista de login lo agrego
             if(login_ips.includes(ip) == false){
@@ -182,7 +206,7 @@ io.sockets.on('connection', function(socket) {
             //Enviar listas de pis al conectarse
             socket.emit('init_pis', {users: ALL_USERS});
         } else{
-            socket.emit('logInResponse', {success: false, config_link: ""});
+            socket.emit('logInResponse', {success: false});
         }
         
     });

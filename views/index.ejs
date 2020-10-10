@@ -48,7 +48,7 @@
         body {
             height: 100%;
             background-color: #DCDCDC;
-            background: url('/client/resources/temp.jpg'); 
+            /* background: url('/client/resources/temp.jpg');  */
             background-size: cover;
             overflow: auto;
         }
@@ -56,7 +56,7 @@
         input, label {
             display:block;
         }
-
+/* 
         #loginInput {
             position:absolute;
             top: 50%;
@@ -71,12 +71,12 @@
         
         #loginDiv {
             position:absolute;
-            /* background: url('/client/resources/fondo.jpg'); */
+             background: url('/client/resources/fondo.jpg'); 
             background-size: 1000px 600px;
             width: 100%;
             height: 100%;
-        }
-
+        } 
+        */
         .top-buffer { margin-top:20px; }
         .top-buffer2 { margin-top:40px; }
         .top-buffer3 { margin-top:36vh; }
@@ -87,7 +87,7 @@
             padding: 0;
         }
 
-.form-control {
+/* .form-control {
 	box-shadow: none;
 	border-color: #ddd;
 }
@@ -164,7 +164,7 @@
 }
 .login-form a {
 	color: #0C7FF6;
-}
+} */
 
 
 .card{
@@ -310,7 +310,7 @@
 <body style="overflow: hidden">
 
 
-    <div id = 'loginDiv'>
+    <!-- <div id = 'loginDiv'>
 
 
         <div class="login-form">    
@@ -328,9 +328,9 @@
         </div>
 
         
-    </div>
+    </div> -->
 
-    <div id = 'containerDiv' style = "display: none;" >
+    <div id = 'containerDiv'>
       
           <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent15"
@@ -343,7 +343,7 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent15">
               <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                  <a class="nav-link" href="/secreto" id = "config-id">Configuracion <span class="sr-only">(current)</span></a>
+                  <a class="nav-link" href="/config" id = "config-id">Configuracion <span class="sr-only">(current)</span></a>
                 </li>
               </ul>
             </div>
