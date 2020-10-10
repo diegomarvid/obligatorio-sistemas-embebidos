@@ -57,10 +57,13 @@ let login_ips = [];
 app.use (function (req, res, next) {
     if (req.secure) {
             // request was via https, so do no special handling
+            console.log('era segura')
             next();
     } else {
             // request was via http, so redirect to https
+            console.log('redirigiendo')
             res.redirect('https://' + req.headers.host + req.url);
+           
     }
 });
 
