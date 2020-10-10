@@ -57,7 +57,8 @@ let login_ips = [];
 app.get('/', function(req, res) {
 
     //Si la ip no esta en la lista de baneados se devuelve el archivo
-    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const forwarded = req.headers['x-forwarded-for']
+    const ip = forwarded ? forwarded.split(/, /)[0] : req.connection.remoteAddress
     if(banned_ips.includes(ip) == false){
         res.sendFile(__dirname + '/client/index.html');
     }
@@ -66,7 +67,8 @@ app.get('/', function(req, res) {
 
 //Obtener pagina de configuracion
 app.get(config_route, function(req, res) {
-    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const forwarded = req.headers['x-forwarded-for']
+    const ip = forwarded ? forwarded.split(/, /)[0] : req.connection.remoteAddress
     if(login_ips.includes(ip)){
         res.sendFile(__dirname + '/client/config.html');
     }
