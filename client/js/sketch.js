@@ -21,7 +21,7 @@ let TEMP_MAX = 80;
 
 let config_link = "";
 
-socket.emit('ip_client', {ip: ip});
+socket.emit('ip_client', {ip: ip, config: false});
 
 //Funcion para actualizar gauge de temperatura
 function actualizar_gauge(){
@@ -262,7 +262,7 @@ function show_user_chat(){
 
     for(let i in users){      
         id = '#chat' + i;
-        html = create_html_card(users[i], true, '"/client/resources/fondo2.jpg"');
+        html = create_html_card(users[i], true, '"/client/resources/user_icon.jpeg"');
         $(id).html(html)        
     }
     //Eliminar el resto hasta el maximo de 4
