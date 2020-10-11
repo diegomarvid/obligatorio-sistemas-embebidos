@@ -49,8 +49,9 @@ const CONFIG = {
 const app = express();
 
 app.use(function(req,res,next) {
+
     //Heroku stores the origin protocol in a header variable. The app itself is isolated within the dyno and all request objects have an HTTP protocol.
-    if (req.get('X-Forwarded-Proto')=='https' || req.hostname == 'localhost') {
+    if (req.get('X-Forwarded-Proto')=='https' || req.hostname == 'localhost' ||  req.hostname == '192.168.0.111' ) {
         //Serve Angular App by passing control to the next middleware
         next();
     } else if(req.get('X-Forwarded-Proto')!='https' && req.get('X-Forwarded-Port')!='443'){
@@ -226,6 +227,11 @@ function is_user_connected(user, ip){
 
 }
 
+function get_user(ip){
+    let result = login_ips.filter(x => x.ip == ip);
+    return result[0].user;
+}
+
 
 //Lista de sockets de clientes web
 SOCKET_LIST = {};
@@ -235,6 +241,9 @@ USERID_DATA_LIST = {};
 SOCKET_DATA_LIST = {};
 //Lista de todos los usuarios de raspberries que existieron
 ALL_USERS = {};
+//Lista de sockets con ip de clientes web
+SOCKET_USERNAME_LIST = {};
+let clients_connected = [];
 
 let io = require('socket.io')(serv, {});
 
@@ -242,6 +251,7 @@ let io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) {
 
     let ip = null;
+    let user = null;
 
     //Identificador unico de conexion
     socket.id = Math.random();
@@ -251,6 +261,23 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('ip_client', function(data){
         ip = data.ip;
+        user = get_user(ip);
+        SOCKET_USERNAME_LIST[socket.id] = user;
+        
+        //Si alguien nuevo entra mandar el estado nuevo a todos
+        if(!clients_connected.includes(user)){
+            clients_connected.push(user);
+            let socket;
+            for(let id in SOCKET_LIST){
+                socket = SOCKET_LIST[id];
+                socket.emit('update_client_chat', {users: clients_connected});
+            }
+        }
+        //Si no es nuevo debo mandar el chat para que lo cargue igual
+        else{
+            socket.emit('update_client_chat', {users: clients_connected});
+        }
+
     });
 
     //Conexion de raspberry
@@ -340,6 +367,30 @@ io.sockets.on('connection', function(socket) {
     socket.on('disconnect', function () {
 
         delete SOCKET_LIST[socket.id];
+        delete SOCKET_USERNAME_LIST[socket.id];
+
+        let sigue_mi_ip = false;
+
+        for(let id in SOCKET_USERNAME_LIST){
+            if(SOCKET_USERNAME_LIST[id] == user){
+                sigue_mi_ip = true;
+                break;
+            }
+            
+        }
+
+        if(!sigue_mi_ip){
+            clients_connected = clients_connected.filter(x => x !== user);
+            let socket;
+            for(let id in SOCKET_LIST){
+                socket = SOCKET_LIST[id];
+                socket.emit('update_client_chat', {users: clients_connected});
+            }
+            
+            console.log(clients_connected);
+        }
+
+
 
         let user_id = USERID_DATA_LIST[socket.id];
         //Si se desconecta una raspberry
@@ -585,5 +636,29 @@ io.sockets.on('connection', function(socket) {
 
 });
 
+let socket;
 
+let ip;
+
+// setInterval(function(){
+    
+
+    
+
+//     // for(let id in SOCKET_LIST){
+
+//     //     ip = SOCKET_USERNAME_LIST[id];
+
+//     //     if(!ips_connected.includes(ip)){
+//     //         ips_connected.push(ip)
+//     //     }
+
+//     //     // socket = SOCKET_LIST[id];
+//     //     // socket.emit('update_client_chat', {users: login_ips});
+//     // }
+
+//     console.log(clients_connected)
+
+
+// },1000);
 

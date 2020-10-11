@@ -220,8 +220,10 @@ function downloadCSV(args, arr) {
 let pis = [];
 let pis_off = [];
 
+let users = [];
+
 //Funcion para hacer html de usuario de chat
-function create_html_card(user, online = true){
+function create_html_card(user, online = true, img = '"/client/resources/fondo.jpeg"'){
 
     let state_html = '"online_icon"';
     let state_txt_html = 'online';
@@ -232,7 +234,7 @@ function create_html_card(user, online = true){
     }
 
     let html1 = '<li>' + '<div class="d-flex bd-highlight">' + '<div class="img_cont">'
-          + '<img src="/client/resources/fondo.jpeg" class="rounded-circle user_img">'
+          + '<img src=' +  img + 'class="rounded-circle user_img">'
           + '<span class=' + state_html +'></span>' + '</div>'
           +  '<div class="user_info">'  + '<span>';
     let html2 = '</span>' + '<p>';
@@ -253,6 +255,14 @@ function show_chat(){
         id = '#test' + index;
         html = create_html_card(pis_off[i], false);
         $(id).html(html)           
+    }
+}
+
+function show_user_chat(){
+    for(let i in users){      
+        id = '#chat' + i;
+        html = create_html_card(users[i], true, '"/client/resources/fondo2.jpg"');
+        $(id).html(html)        
     }
 }
 
@@ -304,6 +314,19 @@ socket.on('delete_pi', function(data){
     console.log(pis, pis_off)
     
 });
+
+//----------------------------------------------------------------------------------------//
+
+socket.on('update_client_chat', function(data){
+    for(let i in data.users){
+        if(!users.includes(data.users[i])){
+            users.push(data.users[i]);
+        }          
+    }
+
+    show_user_chat();
+    console.log(data.users)
+})
 
 //----------------------------------------------------------------------------------------//
 
