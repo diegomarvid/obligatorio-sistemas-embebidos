@@ -27,6 +27,12 @@ pool.connect((err, client, release) => {
 const USER = 'root';
 const KEY = 'admin';
 
+let users = [{username: 'root', password: 'admin'},
+             {username: 'root1', password: 'admin1'},
+             {username: 'root2', password: 'admin2'},
+             {username: 'root3', password: 'admin3'}
+];
+
 //En segundos -> equivale a media hora
 const LOGIN_TIMEOUT = 30*60;
 
@@ -83,13 +89,14 @@ app.post('/login', function(req, res){
 
     let ip = req.fingerprint.hash;
     
-    if(username == USER && password == KEY && !is_user_connected(username, ip)){
+    if(check_correct_login(username, password) && !is_user_connected(username, ip)){
 
         if(!includes_ip(ip)){
             login_ips.push({ip: ip, last_login: new Date(), user: username});
         }        
         res.redirect('/');
     } else{
+
         res.redirect('/login');
     }
 
@@ -153,6 +160,22 @@ app.use('/client', express.static(__dirname + '/client'));
 serv.listen(process.env.PORT || 8080, function() {
     console.log("Server listening at 8080");
 });
+
+function check_correct_login(username, password){
+    
+    //check if user exists:
+    let result = users.filter(x => x.username == username);
+
+    if(result.length == 0){
+        return false;
+    }else if(result.length > 0 && result[0].password != password){
+        return false;
+    }else{
+        return true;
+    }
+
+
+}
 
 //Logica para verificar raspberries repetidas
 function check_repetead_user(user){
