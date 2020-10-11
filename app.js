@@ -3,7 +3,7 @@ const CryptoJS = require("crypto-js");
 const { Pool } = require('pg');
 var Fingerprint = require('express-fingerprint');
 const bodyParser = require('body-parser');
-const { get } = require('http');
+const cookieParser = require('cookie-parser');
 
 
 
@@ -65,6 +65,8 @@ app.use(Fingerprint( { parameters:[
     Fingerprint.geoip ]
 }));
 
+app.use(cookieParser());
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set('views', __dirname + '/views');
@@ -80,6 +82,8 @@ app.get('/login', function(req, res){
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
 
+    // res.clearCookie('login')   
+
     res.render('login.ejs', {ip: ip});
 });
 
@@ -94,10 +98,17 @@ app.post('/login', function(req, res){
 
         if(!includes_ip(ip)){
             login_ips.push({ip: ip, last_login: new Date(), user: username});
-        }        
+        }
+        res.clearCookie('login')   
         res.redirect('/');
     } else{
 
+        if(!check_correct_login(username, password)){
+            res.cookie('login', 'invalid username or password',{expires: new Date(Date.now() + 2000)} );
+        }else{
+            res.cookie('login', `${username} is already connected`,{expires: new Date(Date.now() + 2000)} );
+        }
+       
         res.redirect('/login');
     }
 
