@@ -387,7 +387,6 @@ io.sockets.on('connection', function(socket) {
                 socket.emit('update_client_chat', {users: clients_connected});
             }
             
-            console.log(clients_connected);
         }
 
 

@@ -259,11 +259,18 @@ function show_chat(){
 }
 
 function show_user_chat(){
+
     for(let i in users){      
         id = '#chat' + i;
         html = create_html_card(users[i], true, '"/client/resources/fondo2.jpg"');
         $(id).html(html)        
     }
+    //Eliminar el resto hasta el maximo de 4
+    for(let i = users.length; i <= 4; i++){
+        id = '#chat' + i;
+        $(id).empty();    
+    }
+
 }
 
 socket.on('init_pis', function(data){
@@ -318,14 +325,11 @@ socket.on('delete_pi', function(data){
 //----------------------------------------------------------------------------------------//
 
 socket.on('update_client_chat', function(data){
-    for(let i in data.users){
-        if(!users.includes(data.users[i])){
-            users.push(data.users[i]);
-        }          
-    }
+    
+    users = data.users;
 
     show_user_chat();
-    console.log(data.users)
+    
 })
 
 //----------------------------------------------------------------------------------------//
