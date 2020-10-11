@@ -3,6 +3,7 @@ const CryptoJS = require("crypto-js");
 const { Pool } = require('pg');
 var Fingerprint = require('express-fingerprint');
 const bodyParser = require('body-parser');
+const { get } = require('http');
 
 
 
@@ -82,10 +83,10 @@ app.post('/login', function(req, res){
 
     let ip = req.fingerprint.hash;
     
-    if(username == USER && password == KEY){
+    if(username == USER && password == KEY && !is_user_connected(username, ip)){
 
-        if(includes_ip(ip) == false){
-            login_ips.push({ip: ip, last_login: new Date()});
+        if(!includes_ip(ip)){
+            login_ips.push({ip: ip, last_login: new Date(), user: username});
         }        
         res.redirect('/');
     } else{
@@ -100,6 +101,7 @@ app.get('/', function(req, res) {
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
 
+    
     if(includes_ip(ip)){
 
         if(!login_timeout(new Date(), ip)){
@@ -187,10 +189,19 @@ function login_timeout(date, ip){
 
 }
 
+function is_user_connected(user, ip){
 
+    let result = login_ips.filter(x => x.user == user);
 
+    if(result.length == 0){
+        return false;
+    }else if(result.length > 0 && result[0].ip == ip){
+        return false;
+    } else{
+        return true;
+    }
 
-    
+}
 
 
 //Lista de sockets de clientes web
