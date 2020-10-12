@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
@@ -48,7 +50,6 @@
         body {
             height: 100%;
             background-color: #DCDCDC;
-            /* background: url('/client/resources/temp.jpg');  */
             background-size: cover;
             overflow: auto;
         }
@@ -56,27 +57,7 @@
         input, label {
             display:block;
         }
-/* 
-        #loginInput {
-            position:absolute;
-            top: 50%;
-            left: 45%;
-  
-            padding: 1px;
-            margin : 0px;
-            float: left;
 
-        }
-
-        
-        #loginDiv {
-            position:absolute;
-             background: url('/client/resources/fondo.jpg'); 
-            background-size: 1000px 600px;
-            width: 100%;
-            height: 100%;
-        } 
-        */
         .top-buffer { margin-top:20px; }
         .top-buffer2 { margin-top:40px; }
         .top-buffer3 { margin-top:36vh; }
@@ -86,85 +67,6 @@
             margin: 0;
             padding: 0;
         }
-
-/* .form-control {
-	box-shadow: none;
-	border-color: #ddd;
-}
-.form-control:focus {
-	border-color: #4aba70; 
-}
-.login-form {
-	width: 350px;
-	margin: 0 auto;
-	padding: 90px 0;
-}
-.login-form form {
-	color: #434343;
-	border-radius: 1px;
-	margin-bottom: 15px;
-	background: #fff;
-	border: 1px solid #f3f3f3;
-	box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
-	padding: 30px;
-}
-.login-form h4 {
-	text-align: center;
-	font-size: 22px;
-	margin-bottom: 20px;
-}
-.login-form .avatar {
-	color: #fff;
-	margin: 0 auto 30px;
-	text-align: center;
-	width: 100px;
-	height: 100px;
-	border-radius: 50%;
-	z-index: 9;
-	background: #0C7FF6;
-	padding: 15px;
-	box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.1);
-}
-.login-form .avatar i {
-	font-size: 62px;
-}
-.login-form .form-group {
-	margin-bottom: 20px;
-}
-.login-form .form-control, .login-form .btn {
-	min-height: 40px;
-	border-radius: 2px; 
-	transition: all 0.5s;
-}
-.login-form .close {
-	position: absolute;
-	top: 15px;
-	right: 15px;
-}
-.login-form .btn, .login-form .btn:active {
-	background: #0C7FF6 !important;
-	border: none;
-	line-height: normal;
-}
-.login-form .btn:hover, .login-form .btn:focus {
-	background: #0C7FF6 !important;
-}
-.login-form .checkbox-inline {
-	float: left;
-}
-.login-form input[type="checkbox"] {
-	position: relative;
-	top: 2px;
-}
-.login-form .forgot-link {
-	float: right;
-}
-.login-form .small {
-	font-size: 13px;
-}
-.login-form a {
-	color: #0C7FF6;
-} */
 
 
 .card{
@@ -310,7 +212,8 @@
 <body style="overflow: hidden">
 
     <div id = 'containerDiv'>
-      
+        
+
           <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent15"
             aria-controls="navbarSupportedContent15" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
@@ -322,11 +225,13 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent15">
               <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                  <a class="nav-link" href="/config" id = "config-id">Configuracion <span class="sr-only">(current)</span></a>
+                  <a class="nav-link" href="/config" id = "config-id"> <span class="fa fa-cog"></span> Configuracion</a>
                 </li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">               
                 <li class="nav-item">
-                    <a class="nav-link" href="/logout" id = "logout-id">Log out <span class="sr-only">(current)</span></a>
-                  </li>
+                    <a class="nav-link" href="/logout"><span class="fa fa-sign-out-alt"></span> Log out</a>
+                </li>
               </ul>
             </div>
           </nav>
