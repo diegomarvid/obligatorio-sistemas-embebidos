@@ -82,9 +82,26 @@ app.get('/login', function(req, res){
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
 
-    // res.clearCookie('login')   
+    if(includes_ip(ip)){
+        res.redirect('/');
+    } else{
+        res.render('login.ejs', {ip: ip});
+    }
 
-    res.render('login.ejs', {ip: ip});
+    
+});
+
+//Pagina de login
+app.get('/logout', function(req, res){
+
+    //Obtener hash identificador
+    const ip = req.fingerprint.hash;
+
+    if(includes_ip(ip)){
+        login_ips = login_ips.filter(x => x.ip !== ip);      
+    } 
+    res.redirect('/login');
+
 });
 
 app.post('/login', function(req, res){
