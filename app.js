@@ -1,10 +1,9 @@
 const express = require('express');
-const CryptoJS = require("crypto-js");
 const { Pool } = require('pg');
 var Fingerprint = require('express-fingerprint');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-
+const bcrypt = require('bcrypt');
 
 
 const pool = new Pool({
@@ -18,7 +17,7 @@ pool.connect((err, client, release) => {
     if(err){
         console.error(err.stack)
     } else{
-        console.log('exito al conectar')     
+        console.log('exito al conectar a la db')     
     }
 
     
@@ -27,11 +26,7 @@ pool.connect((err, client, release) => {
 const USER = 'root';
 const KEY = 'admin';
 
-let users = [{username: 'root', password: 'admin'},
-             {username: 'root1', password: 'admin1'},
-             {username: 'root2', password: 'admin2'},
-             {username: 'root3', password: 'admin3'}
-];
+const saltRounds = 5;
 
 //En segundos -> equivale a media hora
 const LOGIN_TIMEOUT = 30*60;
@@ -91,6 +86,18 @@ app.get('/login', function(req, res){
     
 });
 
+//Pagina de register
+app.get('/register', function(req, res){
+
+    //Obtener hash identificador
+    const ip = req.fingerprint.hash;
+
+    res.render('register.ejs', {ip: ip});
+
+
+    
+});
+
 //Pagina de login
 app.get('/logout', function(req, res){
 
@@ -104,32 +111,95 @@ app.get('/logout', function(req, res){
 
 });
 
-app.post('/login', function(req, res){
+app.post('/login', async function(req, res){
  
     let username = req.body.username;
     let password = req.body.password;
 
-    let ip = req.fingerprint.hash;
-    
-    if(check_correct_login(username, password) && !is_user_connected(username, ip)){
+    if(req.body.action == 'Register'){
+        res.redirect('/register');
+    } else{
+        let ip = req.fingerprint.hash;
+
+    let check_login = await check_correct_login(username, password);
+     
+    let user_connected = is_user_connected(username, ip);
+
+    if(check_login && !user_connected){
 
         if(!includes_ip(ip)){
             login_ips.push({ip: ip, last_login: new Date(), user: username});
         }
         res.clearCookie('login')   
         res.redirect('/');
-    } else{
-
-        if(!check_correct_login(username, password)){
+        } 
+    else{
+    
+        if(!check_login){
             res.cookie('login', 'invalid username or password',{expires: new Date(Date.now() + 2000)} );
         }else{
             res.cookie('login', `${username} is already connected`,{expires: new Date(Date.now() + 2000)} );
         }
-       
+        
         res.redirect('/login');
     }
+    }
+   
+    
+  
 
 });
+  
+
+
+app.post('/register', function(req, res){
+
+    let username = req.body.username;
+    let password = req.body.password;
+
+    let ip = req.fingerprint.hash;
+
+    // //Verify if exist users
+    pool.query('select * from users where username = ($1)', [username], (err, resp) => {
+        if(err){
+            console.log('error 1')
+            return console.log(err);
+        }else{
+
+            if(resp.rows.length > 0){
+                res.cookie('register', 'Ya existe un usuario con ese nombre', {expires: new Date(Date.now() + 2000)});
+                res.redirect('/register');
+            } else{
+
+                //Hash password
+                bcrypt.hash(password, saltRounds, (err, hash_pass) => {
+
+                    if(err){
+                        console.log('error 2')
+                        console.log(err)
+                    }
+
+                    //Guardar usuario en la db
+                    pool.query("INSERT INTO users values ($1,$2)", [username, hash_pass], (err) => {
+                    
+                        if(err){
+                            console.log('error 3')
+                            return console.log(err);
+                        }
+
+                        res.clearCookie('register');
+                        res.redirect('/login');
+                    });
+
+                });
+            
+            }
+        }
+    });
+
+
+
+})
 
 //Obtener pagina principal
 app.get('/', function(req, res) {
@@ -190,19 +260,42 @@ serv.listen(process.env.PORT || 8080, function() {
     console.log("Server listening at 8080");
 });
 
-function check_correct_login(username, password){
+
+async function check_correct_login(username, password){
+
+    let pass_hash;
+
+    try {
+        const {rows} = await pool.query('select * from users where username = $1', [username]);
+ 
+        //Existe el cliente
+        if(rows.length > 0){
+            pass_hash = rows[0].password;
+            
+            // Verificar pass correcta
+            const compare = await new Promise((resolve, reject) => {
+
+                bcrypt.compare(password, pass_hash, function(err, res) {
+                    if(err){
+                        reject(err);
+                    } else{
+                        resolve(res);
+                    }
+                });
+
+            });
+
+            return compare;
     
-    //check if user exists:
-    let result = users.filter(x => x.username == username);
+        }else{
+            //No existe el cliente
+            return false;
+        }
 
-    if(result.length == 0){
-        return false;
-    }else if(result.length > 0 && result[0].password != password){
-        return false;
-    }else{
-        return true;
-    }
-
+    } catch(err){
+        console.log('error 4')
+        console.log(err);
+    }  
 
 }
 
@@ -663,29 +756,4 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-let socket;
-
-let ip;
-
-// setInterval(function(){
-    
-
-    
-
-//     // for(let id in SOCKET_LIST){
-
-//     //     ip = SOCKET_USERNAME_LIST[id];
-
-//     //     if(!ips_connected.includes(ip)){
-//     //         ips_connected.push(ip)
-//     //     }
-
-//     //     // socket = SOCKET_LIST[id];
-//     //     // socket.emit('update_client_chat', {users: login_ips});
-//     // }
-
-//     console.log(clients_connected)
-
-
-// },1000);
 
