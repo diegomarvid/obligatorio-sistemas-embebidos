@@ -33,11 +33,14 @@ def send_mail(server, destiny, subject, body):
 
 # Coneccion con el servidor
 sio = socketio.Client()
-sio.connect('http://192.168.0.111:8080')
+sio.connect('http://192.168.0.105:8080')
 
 #Nombre de usuario para conexion de datos con el servidor
 #Verificar que no haya otro usuario conectado con el mismo nombre
-user = 'piReal2'
+sens = 'analogico'
+user = 'pi1'
+user = '{0}_{1}'.format(user, sens)
+
 
 #Variables de configuracion
 TL = -1
@@ -88,8 +91,11 @@ def config_update(data):
     
     rows = data['rows']
     for i in rows:
-      config.append(i['atr'])
-      cont = cont + 1
+        if i['sens'] == sens:
+            config.append(i['atr'])
+            cont = cont + 1
+        if i['sens'] == None:
+            config.append(i['atr'])
 
     print(config)  
         

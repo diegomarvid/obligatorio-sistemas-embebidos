@@ -46,7 +46,7 @@ const app = express();
 app.use(function(req,res,next) {
 
     //Heroku stores the origin protocol in a header variable. The app itself is isolated within the dyno and all request objects have an HTTP protocol.
-    if (req.get('X-Forwarded-Proto')=='https' || req.hostname == 'localhost' ||  req.hostname == '192.168.0.102' ) {
+    if (req.get('X-Forwarded-Proto')=='https' || req.hostname == 'localhost' ||  req.hostname == '192.168.0.105' ) {
         //Serve Angular App by passing control to the next middleware
         next();
     } else if(req.get('X-Forwarded-Proto')!='https' && req.get('X-Forwarded-Port')!='443'){
@@ -231,10 +231,25 @@ app.get('/config', function(req, res) {
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
 
+    const {sens} = req.query;
+
+    let magnitud = 'Temperatura';
+    let unidad = 'ºC';
+
+    if(sens == 'luz'){
+        magnitud = "Luz";
+        unidad = 'lumen'
+    }
+  
     if(includes_ip(ip)){
 
         if(!login_timeout(new Date(), ip)){
-            res.render('config.ejs', {ip: ip});
+            res.render('config.ejs', 
+                    {   ip: ip, 
+                        sens: sens,
+                        magnitud: magnitud,
+                        unidad: unidad
+                    });
         } else{
             //Elimino de la lista
             login_ips = login_ips.filter(x => x.ip !== ip);
@@ -353,6 +368,22 @@ function get_user(ip){
     return result[0].user;
 }
 
+function get_pi_sensor(username){
+    return username.split('_')[1];
+}
+
+function is_pi_username_correct(username){
+    let starts_with_pi = username.substring(0,2) == 'pi';
+    let is_repetead =  check_repetead_user(username);
+    let sensor = get_pi_sensor(username);
+    
+    let valid_sensors = ['analogico', 'digital', 'luz'];
+
+    let is_valid_sensor = valid_sensors.includes(sensor);
+
+    return starts_with_pi && !is_repetead && is_valid_sensor;
+}
+
 
 //Lista de sockets de clientes web
 SOCKET_LIST = {};
@@ -373,6 +404,7 @@ io.sockets.on('connection', function(socket) {
 
     let ip = null;
     let user = null;
+    let sens = null;
 
     //Identificador unico de conexion
     socket.id = Math.random();
@@ -382,6 +414,9 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('ip_client', function(data){
         ip = data.ip;
+        sens = data.sens;
+
+        //Chat logic
         user = get_user(ip);
         SOCKET_USERNAME_LIST[socket.id] = user;
         
@@ -399,6 +434,9 @@ io.sockets.on('connection', function(socket) {
             socket.emit('update_client_chat', {users: clients_connected});
         }
 
+        //Mando el chat de raspberries
+        socket.emit('init_pis', {users: ALL_USERS});
+
     });
 
     //Conexion de raspberry
@@ -409,9 +447,11 @@ io.sockets.on('connection', function(socket) {
 
         //Logica de inicio de sesion
         //Solo usuarios que empiezan con 'pi'
-        if(data.id.substring(0,2) == 'pi' && check_repetead_user(data.id) == false){   
+        if(is_pi_username_correct(data.id)){   
 
-            console.log(`raspberry [${data.id}] connected`);
+            sens = get_pi_sensor(data.id);
+
+            console.log(`raspberry [${data.id}] connected in sensor [${sens}]`);
 
             //Envio de conexion exitosa
             socket.emit('data_connection_res', {success: true})
@@ -434,38 +474,14 @@ io.sockets.on('connection', function(socket) {
 
     })
 
-    //Inicio de sesion
-    socket.on('logIn', function(data) {
-
-        //Si es el usuario correcto
-        if(data.username == USER && data.password == KEY){
-            socket.emit('logInResponse', {success: true});
-
-            //Si inicio sesion y no estaba en la lista de login lo agrego
-            if(login_ips.includes(ip) == false){
-                login_ips.push(ip);
-            }   
-
-            //Enviar listas de pis al conectarse
-            socket.emit('init_pis', {users: ALL_USERS});
-        } else{
-            socket.emit('logInResponse', {success: false});
-        }
-        
-    });
 
     //Mandar valores actuales de configuracion a nuevos clientes
-    pool.query('SELECT * from config', function(err, res){
+    pool.query('SELECT * from config ORDER BY sens, id', function(err, res){
         if(err){
             console.log(err)
         }else{
 
             config_rows = res.rows
-
-            //Organizo por id para disminuir logica en raspberry
-            config_rows.sort(function(a, b){
-                return a.id - b.id;
-            });
 
             socket.emit('config_update', {rows: config_rows});
         }
@@ -474,13 +490,39 @@ io.sockets.on('connection', function(socket) {
 
     //Mando ultimo valor de temperatura a nuevo cliente
     //Selecciono la ultima temperatura de la tabla de temperaturas
-    pool.query('SELECT * FROM test2 ORDER BY date DESC LIMIT 1', function(err, res){
+    pool.query('SELECT * FROM temperatura_analogico ORDER BY date DESC LIMIT 1', function(err, res){
         let last_temp = 0;
         if(err) {
             console.log(err);
         } else{
             last_temp = res.rows[0].temperature;
-            socket.emit('lastTemp', {temp: last_temp})
+            socket.emit('lastTemp_analogico', {temp: last_temp})
+        }
+
+    });
+
+    //Mando ultimo valor de temperatura a nuevo cliente
+    //Selecciono la ultima temperatura de la tabla de temperaturas
+    pool.query('SELECT * FROM temperatura_digital ORDER BY date DESC LIMIT 1', function(err, res){
+        let last_temp = 0;
+        if(err) {
+            console.log(err);
+        } else{
+            last_temp = res.rows[0].temperature;
+            socket.emit('lastTemp_digital', {temp: last_temp})
+        }
+
+    });
+
+    //Mando ultimo valor de temperatura a nuevo cliente
+    //Selecciono la ultima temperatura de la tabla de temperaturas
+    pool.query('SELECT * FROM luz ORDER BY date DESC LIMIT 1', function(err, res){
+        let last_temp = 0;
+        if(err) {
+            console.log(err);
+        } else{
+            last_temp = res.rows[0].temperature;
+            socket.emit('lastTemp_luz', {temp: last_temp})
         }
 
     });
@@ -554,7 +596,12 @@ io.sockets.on('connection', function(socket) {
     //Cuando llega del calendario de la pagina
     socket.on('dateRange', function(data){
 
-        pool.query('SELECT * FROM test2 WHERE date BETWEEN $1 AND $2', [data.startDate, data.endDate], function(err, res){
+        let table = "temperatura_" + data.sens;
+        if(data.sens == 'luz'){
+            table = data.sens;
+        }
+
+        pool.query(`SELECT * FROM ${table} WHERE date BETWEEN $1 AND $2`, [data.startDate, data.endDate], function(err, res){
 
             //Codigo de promediado de horas
             let rows = res.rows;
@@ -621,7 +668,7 @@ io.sockets.on('connection', function(socket) {
 
     //---------------------------Sockets de configuracion---------------------------------//
 
-    let sql2 = 'UPDATE config SET Atr = ($2) WHERE id = ($1)';
+    let sql2 = 'UPDATE config SET Atr = ($2) WHERE id = ($1) AND sens = ($3)';
 
     socket.on('config-temp-range', function(data){
 
@@ -639,14 +686,14 @@ io.sockets.on('connection', function(socket) {
         }
 
         //Guardo los valores en la base de datos
-        pool.query(sql2, [CONFIG.TEMP_MIN, data.min_temp], (err, res) => {
+        pool.query(sql2, [CONFIG.TEMP_MIN, data.min_temp, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
         })
 
         //Guardo los valores en la base de datos
-        pool.query(sql2, [CONFIG.TEMP_MAX, data.max_temp], (err, res) => {
+        pool.query(sql2, [CONFIG.TEMP_MAX, data.max_temp, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
@@ -671,7 +718,7 @@ io.sockets.on('connection', function(socket) {
         }
 
         //Guardar en la base de datos
-        pool.query(sql2, [CONFIG.TIEMPO_MUESTREO, data.muestras_tiempo], (err, res) => {
+        pool.query(sql2, [CONFIG.TIEMPO_MUESTREO, data.muestras_tiempo, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
@@ -695,7 +742,7 @@ io.sockets.on('connection', function(socket) {
         }
 
         //Guardar en la base de datos
-        pool.query(sql2, [CONFIG.EMAIL, data.email], (err, res) => {
+        pool.query(sql2, [CONFIG.EMAIL, data.email, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
@@ -720,7 +767,7 @@ io.sockets.on('connection', function(socket) {
         }
 
         //Guarda en la base de datos
-        pool.query(sql2, [CONFIG.TIEMPO_ALARMAS, data.alerta_tiempo], (err, res) => {
+        pool.query(sql2, [CONFIG.TIEMPO_ALARMAS, data.alerta_tiempo, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
@@ -733,16 +780,22 @@ io.sockets.on('connection', function(socket) {
     //Leer temperatura de las raspberries
     socket.on('python', function(data){
 
-        //Envio a todos los clientes la temperatura nueva
-        let sock;
-        for(let id in SOCKET_LIST){
-            sock = SOCKET_LIST[id];
-            sock.emit('lastTemp', {temp: data.temp} );
+        let table = "temperatura_" + sens;
+        if(sens == 'luz'){
+            table = sens;
         }
         
         //Si esta habilitado para enviar proceso
         if(USERID_DATA_LIST[socket.id] != null){
-            pool.query("INSERT INTO test2 values ($1,$2,$3)", [data.date, data.temp, USERID_DATA_LIST[socket.id]], (err) => {
+
+            //Envio a todos los clientes la temperatura nueva
+            let sock;
+            for(let id in SOCKET_LIST){
+                sock = SOCKET_LIST[id];
+                sock.emit(`lastTemp_${sens}`, {temp: data.temp} );
+            }
+
+            pool.query(`INSERT INTO ${table} values ($1,$2,$3)`, [data.date, data.temp, USERID_DATA_LIST[socket.id]], (err) => {
                 if(err){
                     return console.log(err);
                 }

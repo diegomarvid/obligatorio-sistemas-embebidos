@@ -57,7 +57,13 @@
         
     </style>
     
-    <script>let ip = '<%- ip %>'; console.log(ip) </script>
+    <script>
+      let ip = '<%- ip %>'; 
+      let sens = '<%- sens %>'; 
+
+      console.log(ip, sens);
+
+    </script>
 
 </head>
 
@@ -112,7 +118,7 @@
                             </div>
                             <div class="media-body text-right">
                               <h3 id = "h-temp-min">20 ºC</h3>
-                              <span>Temperatura minima</span>
+                              <span> <%= magnitud %> minima</span>
                             </div>
                           </div>
                         </div>
@@ -130,7 +136,7 @@
                             </div>
                             <div class="media-body text-right">
                               <h3 id = "h-temp-max">80 ºC</h3>
-                              <span>Temperatura maxima</span>
+                              <span><%= magnitud %> maxima</span>
                             </div>
                           </div>
                         </div>
@@ -197,7 +203,7 @@
         <div class = "row text-center top-buffer2">
             <div class = "col-md-4"></div>
             <div class = "col-md-4">
-                <h4>Temperaturas limite</h4>
+                <h4> <%= magnitud %> limite</h4>
             </div>
             <div class = "col-md-4"></div>
         </div>
@@ -206,12 +212,12 @@
         <div class="row top-buffer">
             <div class = "col-md-4"></div>
             <div class="col-md-2">
-                <input id = "min_temp_id" type="number" class="form-control" placeholder="Temperatura minima (ºC)"
+                <input id = "min_temp_id" type="number" class="form-control" placeholder="<%= magnitud %> minima (<%= unidad %>)"
                         oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0"
                 >
                 </div>
             <div class="col-md-2">
-                <input id = "max_temp_id" type="number" class="form-control" placeholder="Temperatura maxima (ºC)"
+                <input id = "max_temp_id" type="number" class="form-control" placeholder="<%= magnitud %> maxima (<%= unidad %>)"
                     oninput= "javascript: if (this.value.length > 2) this.value = this.value.slice(0,2); if (this.value < 0) this.value = 0"
                 >
             </div>
@@ -283,7 +289,7 @@
 
             let socket = io();
 
-            socket.emit('ip_client', {ip: ip, config: true});
+            socket.emit('ip_client', {ip: ip, sens: sens});
 
             Notiflix.Notify.Init({
                 position: 'right-bottom'
@@ -426,15 +432,15 @@
               
               for(let i in data.rows){
 
-                if(data.rows[i].id == 1){
-                  $('#h-temp-min').text(data.rows[i].atr + ' ºC');
-                } else if(data.rows[i].id == 2){
-                  $('#h-temp-max').text(data.rows[i].atr + ' ºC');
-                } else if(data.rows[i].id == 3){
+                if(data.rows[i].id == 1 && data.rows[i].sens == sens){
+                  $('#h-temp-min').text(data.rows[i].atr + ' <%= unidad %>');
+                } else if(data.rows[i].id == 2 && data.rows[i].sens == sens){
+                  $('#h-temp-max').text(data.rows[i].atr + ' <%= unidad %>');
+                } else if(data.rows[i].id == 3 && data.rows[i].sens == sens){
                   $('#h-tiempo-muestreo').text(data.rows[i].atr + ' s');
-                } else if(data.rows[i].id == 4){
+                } else if(data.rows[i].id == 4 && data.rows[i].sens == sens){
                   $('#h-email').text(data.rows[i].atr);
-                } else if(data.rows[i].id == 5){
+                } else if(data.rows[i].id == 5 && data.rows[i].sens == sens){
                   $('#h-tiempo-alarma').text(data.rows[i].atr + ' m');
                 }
               }
@@ -443,8 +449,8 @@
 
             socket.on('update_temp_range', function (data){
 
-              $('#h-temp-min').text(data.min_temp + ' ºC');
-              $('#h-temp-max').text(data.max_temp + ' ºC');
+              $('#h-temp-min').text(data.min_temp + ' <%= unidad %>');
+              $('#h-temp-max').text(data.max_temp + ' <%= unidad %>');
 
             });
 

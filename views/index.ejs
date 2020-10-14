@@ -274,18 +274,22 @@
                     </div>    
                 </div></div> 
  
-                <div class = "col-md-2"></div>
-                <div class = "col-md-4">
+                <div class = "col-md-1"></div>
+                <div class = "col-md-6">
                     <h1 class="display-4">Temperatura Actual</h1>
 
                     <!-- chart de temperatura -->
 
                     <div class = "row top-buffer2">
-                        <div class = "col-md-4"></div>
                         <div class = "col-md-4 d-flex justify-content-center">
-                            <div id="chart_div" style="width: 220px; height: 220px;"></div>
+                            <div id="chart_analogico" style="width: 220px; height: 220px;"></div>
                         </div>
-                        <div class = "col-md-4"></div>
+                        <div class = "col-md-4 d-flex justify-content-center">           
+                            <div id="chart_digital" style="width: 220px; height: 220px;"></div>                           
+                        </div>
+                        <div class = "col-md-4 d-flex justify-content-center">
+                            <div id="chart_luz" style="width: 220px; height: 220px;"></div>
+                        </div>
                     </div>
 
                     <!-- calendario y botones -->
@@ -321,7 +325,7 @@
                                           Enviar
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                                          <button class="dropdown-item" type="button" id = "date-range-confirm">Sensor Analogico</button>
+                                          <button class="dropdown-item" type="button" id = "date-range-confirm-analogico">Sensor Analogico</button>
                                           <button class="dropdown-item" type="button" id = "date-range-confirm-digital">Sensor Digital</button>
                                           <button class="dropdown-item" type="button" id = "date-range-confirm-luz">Sensor Luz</button>
                                         </div>
@@ -354,7 +358,7 @@
 
                 </div>
                 
-                <div class = "col-md-2"></div>  
+                <div class = "col-md-1"></div>  
 
                 <div class="col-md-2 col-xl-2 chat"><div class="card mb-sm-3 mb-md-0 contacts_card">
                     <div class="card-header">

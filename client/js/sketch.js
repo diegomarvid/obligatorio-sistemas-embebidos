@@ -16,20 +16,28 @@ let end_date = "";
 
 let temp_actual = 20;
 
-let TEMP_MIN = 5;
-let TEMP_MAX = 80;
+let TEMP_MIN_A = 5;
+let TEMP_MAX_A = 80;
+let TEMP_MIN_D = 5;
+let TEMP_MAX_D = 80;
+let TEMP_MIN_L = 5;
+let TEMP_MAX_L = 80;
 
 let config_link = "";
 
-socket.emit('ip_client', {ip: ip, config: false});
+socket.emit('ip_client', {ip: ip, sens: null});
 
 //Funcion para actualizar gauge de temperatura
-function actualizar_gauge(){
+function actualizar_gauge(temp, sens){
 
     let chart;
+    let unidad = 'ºC';
+    if(sens == 'luz'){
+        unidad = 'lux';
+    }
 
     try {
-        chart = new google.visualization.Gauge(document.getElementById('chart_div'));
+        chart = new google.visualization.Gauge(document.getElementById(`chart_${sens}`));
 
         options = {
             width: 220, height: 220,
@@ -41,10 +49,11 @@ function actualizar_gauge(){
     
         var data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['ºC', temp_actual]
+            [unidad, temp]
         ]);
     
         chart.draw(data, options);
+
 
     } catch(error){
         console.log(error)
@@ -52,7 +61,6 @@ function actualizar_gauge(){
         location.reload();
     }
     
-    console.log(ip)
    
 }
 
@@ -67,11 +75,23 @@ socket.on('config_update', function(data){
         if(data.rows[i].id == 6){
             estado = data.rows[i].atr;   
         }
-        if(data.rows[i].id == 1){
-            TEMP_MIN = data.rows[i].atr;
+        if(data.rows[i].id == 1 && data.rows[i].sens == 'analogico'){
+            TEMP_MIN_A = data.rows[i].atr;
         }
-        if(data.rows[i].id == 2){
-            TEMP_MAX = data.rows[i].atr;
+        if(data.rows[i].id == 2 && data.rows[i].sens == 'analogico'){
+            TEMP_MAX_A = data.rows[i].atr;
+        }
+        if(data.rows[i].id == 1 && data.rows[i].sens == 'digital'){
+            TEMP_MIN_D = data.rows[i].atr;
+        }
+        if(data.rows[i].id == 2 && data.rows[i].sens == 'digital'){
+            TEMP_MAX_D = data.rows[i].atr;
+        }
+        if(data.rows[i].id == 1 && data.rows[i].sens == 'luz'){
+            TEMP_MIN_L = data.rows[i].atr;
+        }
+        if(data.rows[i].id == 2 && data.rows[i].sens == 'luz'){
+            TEMP_MAX_L = data.rows[i].atr;
         }
 
     }
@@ -85,6 +105,8 @@ socket.on('config_update', function(data){
     }
 
     $('#alarma-id').prop('checked',estado);
+
+    console.log(TEMP_MAX_D, TEMP_MIN_D,TEMP_MAX_A, TEMP_MIN_A,TEMP_MAX_L, TEMP_MIN_L);
 
 })
 
@@ -181,39 +203,6 @@ function downloadCSV(args, arr) {
     link.click();
 }
 
-// //Obtener datos del form de login
-// function login(){
-//     let username = $('#username_id').val();
-//     let password = $('#password_id').val();
-//     socket.emit('logIn', {username: username, password: password});
-//     return;
-// }
-
-// //Respuesta de inicio de sesion
-// socket.on('logInResponse', function(data) {
-
-//     if(data.success) {
-//         //Animacion de loading
-//         Notiflix.Loading.Standard();
-//         Notiflix.Loading.Remove(1000);
-
-//         setTimeout(function(){
-
-//             //Ocultar div de login y mostrar div principal
-//             $("body").css("background","#DCDCDC");
-//             loginState = false;
-//             loginDiv.style.display = 'none';
-//             containerDiv.style.display = 'inline';
-//             //Actualizar link de config
-//             document.getElementById('config-id').setAttribute("href",data.config_link);
-//         }, 1000)
-        
-//     } else{
-//         Notiflix.Notify.Failure('Usuario o contraseña invalido');
-//         $('#username_id').focus();
-//     }
-
-// });
 
 //-------------------------------Actualizacion de chat-----------------------------------//
 
@@ -346,9 +335,19 @@ $('input[name="datetimes"]').on('apply.daterangepicker', function(ev, picker) {
 });
 
 //Cuando apretan boton de enviar, se envian las fechas al servidor
-$('#date-range-confirm').click(function(){
+$('#date-range-confirm-analogico').click(function(){
     let download = $('#downloadCheck').is(":checked");
-    socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download});
+    socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download, sens: 'analogico'});
+})
+//Cuando apretan boton de enviar, se envian las fechas al servidor
+$('#date-range-confirm-digital').click(function(){
+    let download = $('#downloadCheck').is(":checked");
+    socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download, sens: 'digital'});
+})
+//Cuando apretan boton de enviar, se envian las fechas al servidor
+$('#date-range-confirm-luz').click(function(){
+    let download = $('#downloadCheck').is(":checked");
+    socket.emit('dateRange', {startDate: start_date, endDate: end_date, download: download, sens: 'luz'});
 })
 
 
@@ -361,11 +360,21 @@ $('#alarma-id').click(function(){
 });
 
 //Actualizacion de ultima temperatura
-socket.on('lastTemp', function(data){
+socket.on('lastTemp_analogico', function(data){
 
-    temp_actual = data.temp;
- 
-    actualizar_gauge();
+    actualizar_gauge(data.temp, 'analogico');
+
+});
+
+socket.on('lastTemp_digital', function(data){
+
+    actualizar_gauge(data.temp, 'digital');
+
+});
+
+socket.on('lastTemp_luz', function(data){
+
+    actualizar_gauge(data.temp, 'luz');
 
 });
               
