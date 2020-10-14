@@ -32,9 +32,20 @@ function actualizar_gauge(temp, sens){
 
     let chart;
     let unidad = 'ºC';
+    let TEMP_MAX;
+    let TEMP_MIN;
     if(sens == 'luz'){
         unidad = 'lux';
+        TEMP_MAX = TEMP_MAX_L;
+        TEMP_MIN = TEMP_MIN_L;
+    } else if(sens == 'analogico'){
+        TEMP_MAX = TEMP_MAX_A;
+        TEMP_MIN = TEMP_MIN_A;
+    } else if(sens == 'digital'){      
+        TEMP_MAX = TEMP_MAX_D;
+        TEMP_MIN = TEMP_MIN_D;
     }
+
 
     try {
         chart = new google.visualization.Gauge(document.getElementById(`chart_${sens}`));
@@ -105,8 +116,6 @@ socket.on('config_update', function(data){
     }
 
     $('#alarma-id').prop('checked',estado);
-
-    console.log(TEMP_MAX_D, TEMP_MIN_D,TEMP_MAX_A, TEMP_MIN_A,TEMP_MAX_L, TEMP_MIN_L);
 
 })
 

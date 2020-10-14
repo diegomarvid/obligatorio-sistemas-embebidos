@@ -484,48 +484,53 @@ io.sockets.on('connection', function(socket) {
             config_rows = res.rows
 
             socket.emit('config_update', {rows: config_rows});
+
+            //Despues de mandar los valores de config actualizo los gadgets
+            
+                //Mando ultimo valor de temperatura a nuevo cliente
+                //Selecciono la ultima temperatura de la tabla de temperaturas
+                pool.query('SELECT * FROM temperatura_analogico ORDER BY date DESC LIMIT 1', function(err, res){
+                    let last_temp = 0;
+                    if(err) {
+                        console.log(err);
+                    } else{
+                        last_temp = res.rows[0].temperature;
+                        socket.emit('lastTemp_analogico', {temp: last_temp})
+                    }
+
+                });
+
+                //Mando ultimo valor de temperatura a nuevo cliente
+                //Selecciono la ultima temperatura de la tabla de temperaturas
+                pool.query('SELECT * FROM temperatura_digital ORDER BY date DESC LIMIT 1', function(err, res){
+                    let last_temp = 0;
+                    if(err) {
+                        console.log(err);
+                    } else{
+                        last_temp = res.rows[0].temperature;
+                        socket.emit('lastTemp_digital', {temp: last_temp})
+                    }
+
+                });
+
+                //Mando ultimo valor de temperatura a nuevo cliente
+                //Selecciono la ultima temperatura de la tabla de temperaturas
+                pool.query('SELECT * FROM luz ORDER BY date DESC LIMIT 1', function(err, res){
+                    let last_temp = 0;
+                    if(err) {
+                        console.log(err);
+                    } else{
+                        last_temp = res.rows[0].temperature;
+                        socket.emit('lastTemp_luz', {temp: last_temp})
+                    }
+
+                });
+
         }
         
     })
 
-    //Mando ultimo valor de temperatura a nuevo cliente
-    //Selecciono la ultima temperatura de la tabla de temperaturas
-    pool.query('SELECT * FROM temperatura_analogico ORDER BY date DESC LIMIT 1', function(err, res){
-        let last_temp = 0;
-        if(err) {
-            console.log(err);
-        } else{
-            last_temp = res.rows[0].temperature;
-            socket.emit('lastTemp_analogico', {temp: last_temp})
-        }
-
-    });
-
-    //Mando ultimo valor de temperatura a nuevo cliente
-    //Selecciono la ultima temperatura de la tabla de temperaturas
-    pool.query('SELECT * FROM temperatura_digital ORDER BY date DESC LIMIT 1', function(err, res){
-        let last_temp = 0;
-        if(err) {
-            console.log(err);
-        } else{
-            last_temp = res.rows[0].temperature;
-            socket.emit('lastTemp_digital', {temp: last_temp})
-        }
-
-    });
-
-    //Mando ultimo valor de temperatura a nuevo cliente
-    //Selecciono la ultima temperatura de la tabla de temperaturas
-    pool.query('SELECT * FROM luz ORDER BY date DESC LIMIT 1', function(err, res){
-        let last_temp = 0;
-        if(err) {
-            console.log(err);
-        } else{
-            last_temp = res.rows[0].temperature;
-            socket.emit('lastTemp_luz', {temp: last_temp})
-        }
-
-    });
+   
     
     socket.on('disconnect', function () {
 
