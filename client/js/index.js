@@ -238,6 +238,18 @@ function create_html_card(user, online = true, img = '"/client/resources/fondo.j
     let state_html = '"online_icon"';
     let state_txt_html = 'online';
 
+    let user_arr = user.split('_');
+    let username = user_arr[0];
+    let sens = user_arr[1];
+
+    if(sens == 'analogico'){
+        img = '"/client/resources/ntc.jpg"'
+    } else if(sens == 'digital'){
+        img = '"/client/resources/digital.jpg"'
+    } else if(sens == 'luz'){
+        img = '"/client/resources/ldr.jpg"'
+    }
+
     if(online == false){
         state_html = '"online_icon offline"';
         state_txt_html = 'offline'
@@ -249,7 +261,7 @@ function create_html_card(user, online = true, img = '"/client/resources/fondo.j
           +  '<div class="user_info">'  + '<span>';
     let html2 = '</span>' + '<p>';
     let html3 = ' is ' + state_txt_html + '</p>'  +  '</div>  ' + '</div>' + '</li>'    
-    return html1 + user + html2 + user + html3;
+    return html1 + username + html2 + username + html3;
 }
 
 function show_chat(){

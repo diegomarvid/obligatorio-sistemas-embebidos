@@ -46,7 +46,7 @@ const app = express();
 app.use(function(req,res,next) {
 
     //Heroku stores the origin protocol in a header variable. The app itself is isolated within the dyno and all request objects have an HTTP protocol.
-    if (req.get('X-Forwarded-Proto')=='https' || req.hostname == 'localhost' ||  req.hostname == '192.168.0.105' ) {
+    if (req.get('X-Forwarded-Proto')=='https' || req.hostname == 'localhost' ||  req.hostname == '192.168.0.104' ) {
         //Serve Angular App by passing control to the next middleware
         next();
     } else if(req.get('X-Forwarded-Proto')!='https' && req.get('X-Forwarded-Port')!='443'){
@@ -391,9 +391,22 @@ function is_valid_sensor(sensor){
 function is_pi_username_correct(username){
     let starts_with_pi = username.substring(0,2) == 'pi';
     let is_repetead =  check_repetead_user(username);
-    let sensor = get_pi_sensor(username);
+
+    // let sensor = get_pi_sensor(username);
+    let username_arr = username.split('_');
+    let valid_sensor;
+
+    //Username is pi_XXXX
+    if(username_arr.length == 2){
+        //agarro el sensor en ['pi1','analogico']
+        valid_sensor = is_valid_sensor(username_arr[1]);
+    }
+    //Username could be pidsaddas or pi_analogico_dsadad
+    else{
+        valid_sensors = false;
+    }
     
-    return starts_with_pi && !is_repetead && is_valid_sensor(sensor);
+    return starts_with_pi && !is_repetead && valid_sensor;
 }
 
 
