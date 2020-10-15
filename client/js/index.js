@@ -82,6 +82,11 @@ function actualizar_gauge(temp, sens){
    
 }
 
+socket.on('disconnect', function(data){
+    console.log('se fue el server');
+    location.reload();
+})
+
 //Variables de configuracion SOLO actualizada al INICIO DE SESION
 socket.on('config_update', function(data){
 

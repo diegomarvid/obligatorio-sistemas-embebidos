@@ -6,6 +6,11 @@ Notiflix.Notify.Init({
     position: 'right-bottom'
 });
 
+socket.on('disconnect', function(data){
+    console.log('se fue el server');
+    location.reload();
+})
+
 
 function validateEmail(inputText)
 {
