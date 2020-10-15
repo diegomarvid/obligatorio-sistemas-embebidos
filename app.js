@@ -394,16 +394,13 @@ function is_pi_username_correct(username){
 
     // let sensor = get_pi_sensor(username);
     let username_arr = username.split('_');
-    let valid_sensor;
+
+    let valid_sensor = false;
 
     //Username is pi_XXXX
     if(username_arr.length == 2){
         //agarro el sensor en ['pi1','analogico']
         valid_sensor = is_valid_sensor(username_arr[1]);
-    }
-    //Username could be pidsaddas or pi_analogico_dsadad
-    else{
-        valid_sensors = false;
     }
     
     return starts_with_pi && !is_repetead && valid_sensor;
@@ -476,7 +473,7 @@ io.sockets.on('connection', function(socket) {
 
             sens = get_pi_sensor(data.id);
 
-            console.log(`raspberry [${data.id}] connected in sensor [${sens}]`);
+            console.log(`raspberry [${data.id.split('_')[0]}] connected in sensor [${sens}]`);
 
             //Envio de conexion exitosa
             socket.emit('data_connection_res', {success: true})

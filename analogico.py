@@ -33,7 +33,8 @@ def send_mail(server, destiny, subject, body):
 
 # Coneccion con el servidor
 sio = socketio.Client()
-sio.connect('http://192.168.0.105:8080')
+sio.connect('http://192.168.0.104:8080')
+# sio.connect('https://iandel.net')
 
 #Nombre de usuario para conexion de datos con el servidor
 #Verificar que no haya otro usuario conectado con el mismo nombre

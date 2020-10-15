@@ -9,12 +9,17 @@ let loginDiv = document.getElementById('loginDiv');
 let controlDiv = document.getElementById('controlDiv');
 let containerDiv = document.getElementById('containerDiv');
 var ctx = document.getElementById('myChart').getContext('2d');
+google.setOnLoadCallback(init_gauge);
 
 //Variables de inicializacion
 let start_date = "";
 let end_date = "";
 
 let temp_actual = 20;
+
+let chart_analogico;
+let chart_digital;
+let chart_luz;
 
 let TEMP_MIN_A = 5;
 let TEMP_MAX_A = 80;
@@ -27,10 +32,24 @@ let config_link = "";
 
 socket.emit('ip_client', {ip: ip, sens: null});
 
+function init_gauge(){
+
+    try{
+        chart_analogico = new google.visualization.Gauge(document.getElementById(`chart_analogico`));
+        chart_digital = new google.visualization.Gauge(document.getElementById(`chart_digital`));
+        chart_luz = new google.visualization.Gauge(document.getElementById(`chart_luz`));
+    } catch(err){
+        console.log(err);
+        console.log("Intente reiniciar la pagina")
+        location.reload();
+    }
+    
+
+}
+
 //Funcion para actualizar gauge de temperatura
 function actualizar_gauge(temp, sens){
 
-    let chart;
     let unidad = 'ºC';
     let TEMP_MAX;
     let TEMP_MIN;
@@ -53,8 +72,7 @@ function actualizar_gauge(temp, sens){
 
 
     try {
-        chart = new google.visualization.Gauge(document.getElementById(`chart_${sens}`));
-
+       
         options = {
             width: 220, height: 220,
             redFrom: TEMP_MAX, redTo: MAX,
@@ -70,7 +88,14 @@ function actualizar_gauge(temp, sens){
             [unidad, temp]
         ]);
     
-        chart.draw(data, options);
+        if(sens == 'analogico'){
+            chart_analogico.draw(data, options);
+        } else if(sens == 'digital'){
+            chart_digital.draw(data, options);
+        } else if(sens == 'luz'){
+            chart_luz.draw(data, options);
+        }
+        
 
 
     } catch(error){
