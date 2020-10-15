@@ -34,10 +34,15 @@ function actualizar_gauge(temp, sens){
     let unidad = 'ºC';
     let TEMP_MAX;
     let TEMP_MIN;
+
+    let MIN = 0;
+    let MAX = 100;
+
     if(sens == 'luz'){
         unidad = 'lux';
         TEMP_MAX = TEMP_MAX_L;
         TEMP_MIN = TEMP_MIN_L;
+        MAX = 1000;
     } else if(sens == 'analogico'){
         TEMP_MAX = TEMP_MAX_A;
         TEMP_MIN = TEMP_MIN_A;
@@ -52,10 +57,12 @@ function actualizar_gauge(temp, sens){
 
         options = {
             width: 220, height: 220,
-            redFrom: TEMP_MAX, redTo: 100,
+            redFrom: TEMP_MAX, redTo: MAX,
             greenColor: '#6A99FF',
             greenFrom:0, greenTo: TEMP_MIN,
-            minorTicks: 5
+            minorTicks: 5,
+            min: MIN,
+            max: MAX
         };
     
         var data = google.visualization.arrayToDataTable([

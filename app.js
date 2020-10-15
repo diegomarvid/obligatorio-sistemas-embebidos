@@ -231,14 +231,24 @@ app.get('/config', function(req, res) {
     //Obtener hash identificador
     const ip = req.fingerprint.hash;
 
-    const {sens} = req.query;
+    let {sens} = req.query;
 
     let magnitud = 'Temperatura';
     let unidad = 'ºC';
+    //Digitos de maxima unidad
+    //En temperatura hasta 99
+    let max_magnitud = 2;
 
     if(sens == 'luz'){
         magnitud = "Luz";
         unidad = 'lumen'
+        //Se puede luz hasta 999lux
+        max_magnitud = 3;
+    }
+
+    //Proteccion por si el usuario cambia el query
+    if(!is_valid_sensor(sens)){
+        sens = 'analogico';
     }
   
     if(includes_ip(ip)){
@@ -248,7 +258,8 @@ app.get('/config', function(req, res) {
                     {   ip: ip, 
                         sens: sens,
                         magnitud: magnitud,
-                        unidad: unidad
+                        unidad: unidad,
+                        max_magnitud: max_magnitud
                     });
         } else{
             //Elimino de la lista
@@ -372,16 +383,17 @@ function get_pi_sensor(username){
     return username.split('_')[1];
 }
 
+function is_valid_sensor(sensor){
+    let valid_sensors = ['analogico', 'digital', 'luz'];
+    return valid_sensors.includes(sensor);
+}
+
 function is_pi_username_correct(username){
     let starts_with_pi = username.substring(0,2) == 'pi';
     let is_repetead =  check_repetead_user(username);
     let sensor = get_pi_sensor(username);
     
-    let valid_sensors = ['analogico', 'digital', 'luz'];
-
-    let is_valid_sensor = valid_sensors.includes(sensor);
-
-    return starts_with_pi && !is_repetead && is_valid_sensor;
+    return starts_with_pi && !is_repetead && is_valid_sensor(sensor);
 }
 
 
