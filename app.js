@@ -241,7 +241,7 @@ app.get('/config', function(req, res) {
 
     if(sens == 'luz'){
         magnitud = "Luz";
-        unidad = 'lumen'
+        unidad = 'lux'
         //Se puede luz hasta 999lux
         max_magnitud = 3;
     }
@@ -618,7 +618,7 @@ io.sockets.on('connection', function(socket) {
             table = data.sens;
         }
 
-        pool.query(`SELECT * FROM ${table} WHERE date BETWEEN $1 AND $2`, [data.startDate, data.endDate], function(err, res){
+        pool.query(`SELECT * FROM ${table} WHERE date BETWEEN $1 AND $2 ORDER BY date`, [data.startDate, data.endDate], function(err, res){
 
             //Codigo de promediado de horas
             let rows = res.rows;
@@ -658,8 +658,8 @@ io.sockets.on('connection', function(socket) {
                     }
 
 
-                    //Calculo promedio
-                    promedio_temp = suma_temp / contador;
+                    //Calculo promedio y redondear a dos cifras despues de la coma
+                    promedio_temp = (suma_temp / contador).toFixed(2);
 
                     //Obtengo la fecha de la primer temperatura
                     //Agarro el objeto para tener tambien la fecha y temperatura
