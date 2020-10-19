@@ -439,7 +439,9 @@ io.sockets.on('connection', function(socket) {
         sens = data.sens;
 
         //Chat logic
+        //Obtener nombre de usuario a traves de su ip
         user = get_user(ip);
+        //El usuario "user" esta conectado
         SOCKET_USERNAME_LIST[socket.id] = user;
         
         //Si alguien nuevo entra mandar el estado nuevo a todos
@@ -699,28 +701,32 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('config-temp-range', function(data){
 
+        let min_temp = parseInt(data.min_temp);
+        let max_temp = parseInt(data.max_temp);
+       
+
         let socket;
         //Envio a las raspberries el nuevo valor actualizado
         for(let id in SOCKET_DATA_LIST){
             socket = SOCKET_DATA_LIST[id];
-            socket.emit('update_temp_range', {min_temp: data.min_temp, max_temp: data.max_temp});
+            socket.emit('update_temp_range', {min_temp: min_temp, max_temp: max_temp, sens: sens});
         }
 
         //Envio a los clientes web el nuevo valor actualizado
         for(let id in SOCKET_LIST){
             socket = SOCKET_LIST[id];
-            socket.emit('update_temp_range', {min_temp: data.min_temp, max_temp: data.max_temp});
+            socket.emit('update_temp_range', {min_temp: min_temp, max_temp: max_temp, sens: sens});
         }
 
         //Guardo los valores en la base de datos
-        pool.query(sql2, [CONFIG.TEMP_MIN, data.min_temp, sens], (err, res) => {
+        pool.query(sql2, [CONFIG.TEMP_MIN, min_temp, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
         })
 
         //Guardo los valores en la base de datos
-        pool.query(sql2, [CONFIG.TEMP_MAX, data.max_temp, sens], (err, res) => {
+        pool.query(sql2, [CONFIG.TEMP_MAX, max_temp, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
@@ -731,21 +737,23 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('config-tiempo-muestras', function(data){
 
+        let muestras_tiempo = parseInt(data.muestras_tiempo);
+
         let socket;
         //Envio a las raspberries el nuevo valor actualizado
         for(let id in SOCKET_DATA_LIST){
             socket = SOCKET_DATA_LIST[id];
-            socket.emit('update_tiempo_muestras', {tiempo_muestras: data.muestras_tiempo});
+            socket.emit('update_tiempo_muestras', {tiempo_muestras: muestras_tiempo, sens: sens});
         }
 
         //Envio a los clientes web el nuevo valor actualizado
         for(let id in SOCKET_LIST){
             socket = SOCKET_LIST[id];
-            socket.emit('update_tiempo_muestras', {tiempo_muestras: data.muestras_tiempo});
+            socket.emit('update_tiempo_muestras', {tiempo_muestras: muestras_tiempo, sens: sens});
         }
 
         //Guardar en la base de datos
-        pool.query(sql2, [CONFIG.TIEMPO_MUESTREO, data.muestras_tiempo, sens], (err, res) => {
+        pool.query(sql2, [CONFIG.TIEMPO_MUESTREO, muestras_tiempo, sens], (err, res) => {
             if(err){
                 console.log(err)
              }
@@ -759,13 +767,13 @@ io.sockets.on('connection', function(socket) {
         //Envio a las raspberries el nuevo valor actualizado
         for(let id in SOCKET_DATA_LIST){
             socket = SOCKET_DATA_LIST[id];
-            socket.emit('update_email', {email: data.email});
+            socket.emit('update_email', {email: data.email, sens: sens});
         }
 
         //Envio a los clientes web el nuevo valor actualizado
         for(let id in SOCKET_LIST){
             socket = SOCKET_LIST[id];
-            socket.emit('update_email', {email: data.email});
+            socket.emit('update_email', {email: data.email, sens: sens});
         }
 
         //Guardar en la base de datos
@@ -779,22 +787,23 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('config-tiempo-alerta', function(data){
 
+        let alerta_tiempo = parseInt(data.alerta_tiempo);
 
         let socket;
         //Envio a las raspberries el nuevo valor actualizado
         for(let id in SOCKET_DATA_LIST){
             socket = SOCKET_DATA_LIST[id];
-            socket.emit('update_tiempo_alerta', {tiempo_alerta: data.alerta_tiempo});
+            socket.emit('update_tiempo_alerta', {tiempo_alerta: alerta_tiempo, sens: sens});
         }
 
         //Envio a los clientes web el nuevo valor actualizado
         for(let id in SOCKET_LIST){
             socket = SOCKET_LIST[id];
-            socket.emit('update_tiempo_alerta', {tiempo_alerta: data.alerta_tiempo});
+            socket.emit('update_tiempo_alerta', {tiempo_alerta: alerta_tiempo, sens: sens});
         }
 
         //Guarda en la base de datos
-        pool.query(sql2, [CONFIG.TIEMPO_ALARMAS, data.alerta_tiempo, sens], (err, res) => {
+        pool.query(sql2, [CONFIG.TIEMPO_ALARMAS, alerta_tiempo, sens], (err, res) => {
             if(err){
                 console.log(err)
              }

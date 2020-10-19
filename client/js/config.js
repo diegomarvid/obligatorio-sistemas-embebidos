@@ -64,7 +64,7 @@ $("#muestras_id").keyup(function(e){
 $('#muestras-confirm').click(function(){
 
     if($("#muestras_id").val() >= 5){
-        socket.emit('config-tiempo-muestras', {muestras_tiempo: $("#muestras_id").val()});
+        socket.emit('config-tiempo-muestras', {muestras_tiempo: parseInt($("#muestras_id").val())});
         Notiflix.Report.Success(
             'Exito',
             `Se actualizo de forma correcta el tiempo de muestreo a: ${$("#muestras_id").val()}`,
@@ -164,6 +164,9 @@ socket.on('config_update', function(data){
 });
 
 socket.on('update_temp_range', function (data){
+  
+  //Solo modifico si es mi sensor  
+  if(data.sens != sens) return;
 
   $('#h-temp-min').text(data.min_temp + ' ' + unidad);
   $('#h-temp-max').text(data.max_temp + ' ' + unidad);
@@ -171,13 +174,19 @@ socket.on('update_temp_range', function (data){
 });
 
 socket.on('update_tiempo_muestras', function (data){
+  //Solo modifico si es mi sensor  
+  if(data.sens != sens) return;
   $('#h-tiempo-muestreo').text(data.tiempo_muestras + ' s');
 });
 
 socket.on('update_email', function (data){
+  //Solo modifico si es mi sensor  
+  if(data.sens != sens) return;
   $('#h-email').text(data.email);
 });
 
 socket.on('update_tiempo_alerta', function (data){
+  //Solo modifico si es mi sensor  
+  if(data.sens != sens) return;
   $('#h-tiempo-alarma').text(data.tiempo_alerta + ' m');
 });

@@ -33,13 +33,13 @@ def send_mail(server, destiny, subject, body):
 
 # Coneccion con el servidor
 sio = socketio.Client()
-sio.connect('http://192.168.0.104:8080')
-# sio.connect('https://iandel.net')
+# sio.connect('http://192.168.0.104:8080')
+sio.connect('https://iandel.net')
 
 #Nombre de usuario para conexion de datos con el servidor
 #Verificar que no haya otro usuario conectado con el mismo nombre
 sens = 'analogico'
-user = 'pi1'
+user = 'pi-Diego'
 user = '{0}_{1}'.format(user, sens)
 
 
@@ -193,11 +193,21 @@ tiempo_sleep = 4
 #la descarga del capacitor.
 #Se usa un capacitor grande para aumentar la precision
 def descarga(muestreo):
-    GPIO.output(res, GPIO.LOW)
+
+    #Se descargue por el terminal del capacitor
+    #Impedancia de entrada infinita en la NTC
+    GPIO.setup(cap, GPIO.OUT)
+    GPIO.setup(res, GPIO.IN)
+
+    GPIO.output(cap, GPIO.LOW)
     sleep(muestreo)
 
 #Medicion de tiempo de carga
 def tiempo_carga():
+
+    GPIO.setup(cap, GPIO.IN)
+    GPIO.setup(res, GPIO.OUT)
+
     GPIO.output(res, GPIO.HIGH)
     inicio = datetime.now()
     while (not GPIO.input(cap)) and ((datetime.now() - inicio).total_seconds() < tiempo_muestras):

@@ -28,6 +28,10 @@ let TEMP_MAX_D = 80;
 let TEMP_MIN_L = 5;
 let TEMP_MAX_L = 80;
 
+let temp_actual_a = 0;
+let temp_actual_d = 0;
+let temp_actual_l = 0;
+
 let config_link = "";
 
 socket.emit('ip_client', {ip: ip, sens: null});
@@ -48,36 +52,27 @@ function init_gauge(){
 }
 
 //Funcion para actualizar gauge de temperatura
-function actualizar_gauge(temp, sens){
+function actualizar_gauge(temp, sens, temp_min, temp_max){
 
     let unidad = 'ºC';
-    let TEMP_MAX;
-    let TEMP_MIN;
 
+    //Limite de valores
     let MIN = 0;
     let MAX = 100;
 
+    //Variacion de variables acorde a sensor
     if(sens == 'luz'){
         unidad = 'lux';
-        TEMP_MAX = TEMP_MAX_L;
-        TEMP_MIN = TEMP_MIN_L;
         MAX = 1000;
-    } else if(sens == 'analogico'){
-        TEMP_MAX = TEMP_MAX_A;
-        TEMP_MIN = TEMP_MIN_A;
-    } else if(sens == 'digital'){      
-        TEMP_MAX = TEMP_MAX_D;
-        TEMP_MIN = TEMP_MIN_D;
     }
-
 
     try {
        
         options = {
             width: 220, height: 220,
-            redFrom: TEMP_MAX, redTo: MAX,
+            redFrom: temp_max, redTo: MAX,
             greenColor: '#6A99FF',
-            greenFrom:0, greenTo: TEMP_MIN,
+            greenFrom:0, greenTo: temp_min,
             minorTicks: 5,
             min: MIN,
             max: MAX
@@ -88,6 +83,7 @@ function actualizar_gauge(temp, sens){
             [unidad, temp]
         ]);
     
+        //Dependiendo del sensor escribir en X gauge
         if(sens == 'analogico'){
             chart_analogico.draw(data, options);
         } else if(sens == 'digital'){
@@ -159,11 +155,29 @@ socket.on('config_update', function(data){
 
 
 socket.on('update_temp_range', function(data){
-    TEMP_MIN = data.min_temp;
-    TEMP_MAX = data.max_temp;
+
+    let temp_actual;
+
+    //Actualizo variables globales
+    if(data.sens == 'analogico'){
+        temp_actual = temp_actual_a;
+        TEMP_MIN_A = data.min_temp;
+        TEMP_MAX_A = data.max_temp;
+
+    }else if(data.sens == 'digital'){
+        temp_actual = temp_actual_d;
+        TEMP_MIN_D = data.min_temp;
+        TEMP_MAX_D = data.max_temp;
+    }else{
+        temp_actual = temp_actual_l;
+        TEMP_MIN_L = data.min_temp;
+        TEMP_MAX_L = data.max_temp;
+    }
+
+    console.log(temp_actual, data.sens)
 
     //Actualizo gauge
-    actualizar_gauge()
+    actualizar_gauge(temp_actual, data.sens, data.min_temp, data.max_temp)
 
 })
 
@@ -420,19 +434,25 @@ $('#alarma-id').click(function(){
 //Actualizacion de ultima temperatura
 socket.on('lastTemp_analogico', function(data){
 
-    actualizar_gauge(data.temp, 'analogico');
+    temp_actual_a = data.temp;
+
+    actualizar_gauge(data.temp, 'analogico', TEMP_MIN_A, TEMP_MAX_A);
 
 });
 
 socket.on('lastTemp_digital', function(data){
 
-    actualizar_gauge(data.temp, 'digital');
+    temp_actual_d = data.temp;
+
+    actualizar_gauge(data.temp, 'digital', TEMP_MIN_D, TEMP_MAX_D);
 
 });
 
 socket.on('lastTemp_luz', function(data){
 
-    actualizar_gauge(data.temp, 'luz');
+    temp_actual_l = data.temp;
+
+    actualizar_gauge(data.temp, 'luz', TEMP_MIN_L, TEMP_MAX_L);
 
 });
               
