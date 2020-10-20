@@ -11,6 +11,11 @@ let containerDiv = document.getElementById('containerDiv');
 var ctx = document.getElementById('myChart').getContext('2d');
 google.setOnLoadCallback(init_gauge);
 
+$( document ).ready(function() {
+    $("#sortable").sortable();
+    $("#sortable").disableSelection();
+ });
+
 //Variables de inicializacion
 let start_date = "";
 let end_date = "";

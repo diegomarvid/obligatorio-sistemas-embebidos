@@ -44,6 +44,9 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.js"></script>
    
+
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
     <!-- load google gauge  -->
     <script>google.charts.load('current', {'packages':['gauge']});</script>
     <title>Obligatorio 1</title>
@@ -120,29 +123,40 @@
                 <div class = "col-md-6">
                     <h1 class="display-4">Temperatura Actual</h1>
 
-                    <div class = "row top-buffer2 text-center">
-                        <div class = "col-md-4 d-flex justify-content-center">
-                            <p>Sensor Analogico</p>
-                        </div>
-                        <div class = "col-md-4 d-flex justify-content-center">
-                            <p>Sensor Digital</p>
-                        </div>
-                        <div class = "col-md-4 d-flex justify-content-center">
-                            <p>Sensor Luminico</p>
-                        </div>
-                    </div>
-                    <!-- chart de temperatura -->
+                    <div id = 'sortable' class = "row top-buffer2 text-center">
 
-                    <div class = "row top-buffer text-center">
-                        <div class = "col-md-4 d-flex justify-content-center">
-                            <div id="chart_analogico" style="width: 220px; height: 220px;"></div>
-                        </div>
-                        <div class = "col-md-4 d-flex justify-content-center">           
-                            <div id="chart_digital" style="width: 220px; height: 220px;"></div>                           
-                        </div>
-                        <div class = "col-md-4 d-flex justify-content-center">
-                            <div id="chart_luz" style="width: 220px; height: 220px;"></div>
-                        </div>
+                        <div class="col-xs-4 col-sm-4 col-md-4 ">
+                         
+                            <div class = "row d-flex justify-content-center">
+                                <p>Sensor Analogico</p>
+                            </div>
+                           
+                            <div class = "row d-flex justify-content-center">
+                                <div id="chart_analogico" style="width: 220px; height: 220px;"></div> 
+
+                            </div>
+                                                              
+                        </div>    
+                        <div class="col-xs-4 col-sm-4 col-md-4">
+                            <div class = "row d-flex justify-content-center">
+                                <p>Sensor Digital</p>
+                            </div>
+                           
+                            <div class = "row d-flex justify-content-center">
+                                <div id="chart_digital" style="width: 220px; height: 220px;"></div> 
+
+                            </div>             
+                        </div>  
+                        <div class="col-xs-4 col-sm-4 col-md-4">
+                            <div class = "row d-flex justify-content-center">
+                                <p>Sensor Luminico</p>
+                            </div>
+                           
+                            <div class = "row d-flex justify-content-center">
+                                <div id="chart_luz" style="width: 220px; height: 220px;"></div> 
+
+                            </div>             
+                        </div>  
                     </div>
 
                     <!-- calendario y botones -->
