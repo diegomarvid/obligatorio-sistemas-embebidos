@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgres://bpnglisbxsblsw:9f0fd7e900530dc873613357b58a653b4ca786f8165d79e62ec91714807abd0e@ec2-52-73-199-211.compute-1.amazonaws.com:5432/dfhs19f5g32p3h',
+    connectionString: process.env.DATABASE_URL,
     ssl: {
       rejectUnauthorized: false
     }
@@ -22,9 +22,6 @@ pool.connect((err, client, release) => {
 
     
 });
-
-const USER = 'root';
-const KEY = 'admin';
 
 const saltRounds = 5;
 
