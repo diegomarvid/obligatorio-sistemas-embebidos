@@ -58,9 +58,9 @@ cap = 27
 #Rangos limites
 
 #Temperatura que da si se pone en tierra
-TEMP_GND = -10
+TEMP_GND = -1
 #Temperatura que da si se saca el NTC
-TEMP_NAN = 150
+TEMP_NAN = 20000
 
 #Establecer conexion de datos con el servidor
 sio.emit('data_connection', {'id': user})
@@ -225,7 +225,7 @@ def obtener_r(th, c, vcc, vh):
 #Conversion de resistencia a lux
 def obtener_luz(Rt):
     Ro = 1.25*(10**7)
-    alfa = -1.1 
+    alfa = -1.4059
     return Ro * (Rt ** alfa)
 
 def muestrear():
