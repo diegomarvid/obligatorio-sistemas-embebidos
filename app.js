@@ -13,6 +13,7 @@ const pool = new Pool({
     }
   });
 
+
 pool.connect((err, client, release) => {
     if(err){
         console.error(err.stack)
@@ -239,8 +240,8 @@ app.get('/config', function(req, res) {
     if(sens == 'luz'){
         magnitud = "Luz";
         unidad = 'lux'
-        //Se puede luz hasta 999lux
-        max_magnitud = 3;
+        //Se puede luz hasta 9999lux
+        max_magnitud = 4;
     }
 
     //Proteccion por si el usuario cambia el query

@@ -68,7 +68,7 @@ function actualizar_gauge(temp, sens, temp_min, temp_max){
     //Variacion de variables acorde a sensor
     if(sens == 'luz'){
         unidad = 'lux';
-        MAX = 1000;
+        MAX = 10000;
     }
 
     try {
