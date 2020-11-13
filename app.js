@@ -516,8 +516,13 @@ io.sockets.on('connection', function(socket) {
                     if(err) {
                         console.log(err);
                     } else{
-                        last_temp = res.rows[0].temperature;
-                        socket.emit('lastTemp_analogico', {temp: last_temp})
+                        if(res.rows.length > 0){
+                            last_temp = res.rows[0].temperature;
+                            socket.emit('lastTemp_analogico', {temp: last_temp});
+                        } else{
+                            socket.emit('lastTemp_analogico', {temp: -1});
+                        }
+                        
                     }
 
                 });
@@ -529,8 +534,12 @@ io.sockets.on('connection', function(socket) {
                     if(err) {
                         console.log(err);
                     } else{
-                        last_temp = res.rows[0].temperature;
-                        socket.emit('lastTemp_digital', {temp: last_temp})
+                        if(res.rows.length > 0){
+                            last_temp = res.rows[0].temperature;
+                            socket.emit('lastTemp_digital', {temp: last_temp})
+                        } else{
+                            socket.emit('lastTemp_digital', {temp: -1})
+                        }
                     }
 
                 });
@@ -542,8 +551,12 @@ io.sockets.on('connection', function(socket) {
                     if(err) {
                         console.log(err);
                     } else{
-                        last_temp = res.rows[0].temperature;
-                        socket.emit('lastTemp_luz', {temp: last_temp})
+                        if(res.rows.length > 0){
+                            last_temp = res.rows[0].temperature;
+                            socket.emit('lastTemp_luz', {temp: last_temp});
+                        } else{
+                            socket.emit('lastTemp_luz', {temp: -1});
+                        }
                     }
 
                 });
