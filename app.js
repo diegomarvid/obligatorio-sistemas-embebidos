@@ -633,6 +633,32 @@ io.sockets.on('connection', function(socket) {
 
     })
 
+    socket.on('activar-led', function(data){
+
+        //El estado del led usa id = 6 que es el mismo que config.estado_alarma
+        //La diferencia es que esta asociado al sensor luz en vez de null
+        pool.query('UPDATE config SET Atr = ($2) WHERE id = ($1) and sens = ($3)',[CONFIG.ESTADO_ALARMA, data.estado, 'luz'], (err) =>{
+            if(err){
+                return console.log(err);
+            }
+        })
+       
+        //Envio a todas las raspberries
+        let socket;
+        //Envio a las raspberries el nuevo valor actualizado
+        for(let id in SOCKET_DATA_LIST){
+            socket = SOCKET_DATA_LIST[id];
+            socket.emit('update_estado_led', {estado_led: data.estado});
+        }
+
+        //Envio a todos los clientes web
+        for(let id in SOCKET_LIST){
+            socket = SOCKET_LIST[id];
+            socket.emit('update_estado_led', {estado_led: data.estado});
+        }
+
+    })
+
     //Cuando llega del calendario de la pagina
     socket.on('dateRange', function(data){
 

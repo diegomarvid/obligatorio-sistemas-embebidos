@@ -33,7 +33,7 @@ def send_mail(server, destiny, subject, body):
 
 # Coneccion con el servidor
 sio = socketio.Client()
-# sio.connect('http://192.168.0.104:8080')
+# sio.connect('http://192.168.0.107:8080')
 sio.connect('https://iandel.net')
 
 #Nombre de usuario para conexion de datos con el servidor
@@ -49,11 +49,13 @@ TH = -1
 tiempo_muestras = 5
 email = ''
 TA = -1
+estado_led = 0
 estado_alarma = 0
 
 #Pines donde estan conectados los elementos
 res = 17
 cap = 27
+led = 25
 
 #Rangos limites
 
@@ -83,6 +85,7 @@ def config_update(data):
     global tiempo_muestras
     global email
     global TA
+    global estado_led
     global estado_alarma
 
     cont = 0
@@ -105,8 +108,14 @@ def config_update(data):
     tiempo_muestras = int(config[2])
     email = config[3]
     TA = int(config[4])
-    estado_alarma = config[5].lower()
+    estado_led = config[5].lower()
+    estado_alarma = config[6].lower()
     
+    if estado_led == 'true':
+      GPIO.output(led, GPIO.HIGH) 
+    else:
+      GPIO.output(led, GPIO.LOW)
+
     if estado_alarma == 'true':
       estado_alarma = True
     else:
@@ -152,6 +161,19 @@ def update_tiempo_alerta(data):
     print(TA)
     return
 
+#Estado de LED
+@sio.event
+def update_estado_led(data):
+    global estado_led
+    estado_led = data['estado_led']
+    print(estado_led)
+    if estado_led == True:
+        GPIO.output(led, GPIO.HIGH)       
+    else:
+        GPIO.output(led, GPIO.LOW)      
+    return
+
+
 #Estado de alarma
 @sio.event
 def update_estado_alarma(data):
@@ -175,6 +197,7 @@ def connect():
 
 # Set up de los pines
 GPIO.setmode(GPIO.BCM)
+GPIO.setup(led, GPIO.OUT)
 GPIO.setup(cap, GPIO.IN)
 GPIO.setup(res, GPIO.OUT)
 
@@ -245,7 +268,7 @@ luz = 0
 server = init_smtp()
 
 while True:
-
+    
     tiempo_actual = datetime.now()
 
     if  (tiempo_actual - tiempo_ultima_medida).total_seconds() >= tiempo_muestras:
@@ -270,6 +293,8 @@ while True:
                     send_mail(server, email, 'ALERTA luz baja', "La luz paso el limite {0} lux con un valor de {1} lux".format(TL, luz))
                     print("La luz paso el limite {0} lux con un valor de {1} lux".format(TL, luz))
                     tiempo_ultima_alarma = datetime.now() 
+
+             
 
    
     

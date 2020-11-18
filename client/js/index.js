@@ -37,6 +37,8 @@ let temp_actual_a = 0;
 let temp_actual_d = 0;
 let temp_actual_l = 0;
 
+let led_prendido = false;
+
 let config_link = "";
 
 socket.emit('ip_client', {ip: ip, sens: null});
@@ -108,6 +110,53 @@ function actualizar_gauge(temp, sens, temp_min, temp_max){
    
 }
 
+//---------------Manejo del boton de LED---------------------//
+$('#ledbtn').click(function(){
+    
+
+    if(led_prendido == true){
+        $(this).blur();
+        led_prendido = false;
+        socket.emit('activar-led', {estado: led_prendido});
+    }else{
+        $(this).blur();
+        led_prendido = true;
+        socket.emit('activar-led', {estado: led_prendido});
+    }
+
+    
+});
+
+socket.on('update_estado_led', function(data){
+
+    
+
+    //Si hay solo 1 pagina abierta es redudante, pero le sirve al que no apreto el boton
+    led_prendido = data.estado_led;
+
+    //Convertir de str a boolean
+    if(led_prendido == 'true'){
+        led_prendido = true;
+    } else if(led_prendido == 'false'){
+        led_prendido = false;
+    }
+
+
+    if(led_prendido == true){
+        $('#ledbtn').removeClass();
+        $('#ledbtn').addClass('btn btn-success');
+        $('#ledbtn').html('LED Prendido');
+        
+    }else{
+        $('#ledbtn').removeClass();
+        $('#ledbtn').addClass('btn btn-danger');
+        $('#ledbtn').html('LED Apagado');
+    }
+
+})
+
+//-----------------------------------------------------------//
+
 socket.on('disconnect', function(data){
     console.log('se fue el server');
     location.reload();
@@ -117,11 +166,11 @@ socket.on('disconnect', function(data){
 socket.on('config_update', function(data){
 
     console.log('update de config')
-
+ 
     let estado;
 
     for(let i in data.rows){
-        if(data.rows[i].id == 6){
+        if(data.rows[i].id == 6 && data.rows[i].sens == null){
             estado = data.rows[i].atr;   
         }
         if(data.rows[i].id == 1 && data.rows[i].sens == 'analogico'){
@@ -142,6 +191,9 @@ socket.on('config_update', function(data){
         if(data.rows[i].id == 2 && data.rows[i].sens == 'luz'){
             TEMP_MAX_L = data.rows[i].atr;
         }
+        if(data.rows[i].id == 6 && data.rows[i].sens == 'luz'){
+            led_prendido = data.rows[i].atr;
+        }
 
     }
     
@@ -154,6 +206,23 @@ socket.on('config_update', function(data){
     }
 
     $('#alarma-id').prop('checked',estado);
+
+    //Parseando a booleana por si viene en str de la db
+    if(led_prendido == 'true'){
+        led_prendido = true;
+    }else if(led_prendido == 'false'){
+        led_prendido = false;
+    }
+    
+    if(led_prendido == true){
+        $('#ledbtn').removeClass();
+        $('#ledbtn').addClass('btn btn-success');
+        $('#ledbtn').html('LED Prendido');
+    }else{
+        $('#ledbtn').removeClass();
+        $('#ledbtn').addClass('btn btn-danger');
+        $('#ledbtn').html('LED Apagado');
+    }
 
 })
 
