@@ -208,10 +208,10 @@ while True:
 
             if (tiempo_actual - tiempo_ultima_alarma).total_seconds() >= (TA)*60:
                 if temp >= TH:
-                    send_mail(server, email, 'ALERTA temperatura alta digital', "La temperatura paso el limite {0} ÂºC con un valor de {1} ÂºC".format(TH, temp))
-                    print("La temperatura paso el limite {0} ÂºC con un valor de {1} ÂºC".format(TH, temp))
+                    send_mail(server, email, 'ALERTA temperatura alta digital', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TH, temp))
+                    print("La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TH, temp))
                     tiempo_ultima_alarma = datetime.now()
                 if temp <= TL:
-                    send_mail(server, email, 'ALERTA temperatura baja digital', "La temperatura paso el limite {0} ÂºC con un valor de {1} ÂºC".format(TL, temp))
-                    print("La temperatura paso el limite {0} ÂºC con un valor de {1} ÂºC".format(TL, temp))
+                    send_mail(server, email, 'ALERTA temperatura baja digital', "La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TL, temp))
+                    print("La temperatura paso el limite {0} ºC con un valor de {1} ºC".format(TL, temp))
                     tiempo_ultima_alarma = datetime.now() 
