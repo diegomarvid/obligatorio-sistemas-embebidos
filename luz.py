@@ -131,34 +131,38 @@ def config_update(data):
 def update_temp_range(data):
     global TL
     global TH
-    TL = int(data['min_temp'])
-    TH = int(data['max_temp'])
-    print(TL)
-    print(TH)
+    if data['sens'] == sens:
+        TL = int(data['min_temp'])
+        TH = int(data['max_temp'])
+        print(TL)
+        print(TH)
     return    
 
 #Tiempo de muestreo
 @sio.event
 def update_tiempo_muestras(data):
     global tiempo_muestras
-    tiempo_muestras = int(data['tiempo_muestras'])
-    print(tiempo_muestras)
+    if data['sens'] == sens:
+        tiempo_muestras = int(data['tiempo_muestras'])
+        print(tiempo_muestras)
     return    
 
 #Email de destino
 @sio.event
 def update_email(data):
     global email
-    email = data['email']
-    print(email)
+    if data['sens'] == sens:
+        email = data['email']
+        print(email)
     return
 
 #Tiempo entre alertas
 @sio.event
 def update_tiempo_alerta(data):
     global TA
-    TA = int(data['tiempo_alerta'])
-    print(TA)
+    if data['sens'] == sens:
+        TA = int(data['tiempo_alerta'])
+        print(TA)
     return
 
 #Estado de LED
