@@ -87,19 +87,36 @@ $('#temp-range-confirm').click(function(){
         $("#min_temp_id").focus();
         $("#min_temp_id").removeClass('is-valid');
         $("#min_temp_id").addClass('is-invalid');
-        Notiflix.Notify.Failure('Debe ingresar una temperatura minima');
+        if(sens == 'luz'){
+            Notiflix.Notify.Failure('Debe ingresar una intesidad de luz minima');
+        } else{
+            Notiflix.Notify.Failure('Debe ingresar una temperatura minima');
+        }
+        
     } else if($("#max_temp_id").val().length == 0){
         $("#max_temp_id").focus();
         $("#max_temp_id").removeClass('is-valid');
         $("#max_temp_id").addClass('is-invalid');
-        Notiflix.Notify.Failure('Debe ingresar una temperatura maxima');
+
+        if(sens == 'luz'){
+            Notiflix.Notify.Failure('Debe ingresar una intesidad de luz maxima');
+        }else{
+            Notiflix.Notify.Failure('Debe ingresar una temperatura maxima');
+        }
+        
     } else if(min_temp >= max_temp){
         $("#min_temp_id").focus();
         $("#min_temp_id").removeClass('is-valid');
         $("#min_temp_id").addClass('is-invalid');
         $("#max_temp_id").removeClass('is-valid');
         $("#max_temp_id").addClass('is-invalid');
-        Notiflix.Notify.Failure('La temperatura maxima debe ser mayor a la minima');
+
+        if(sens == 'luz'){
+            Notiflix.Notify.Failure('La intensidad de luz maxima debe ser mayor a la minima');
+        }else{
+            Notiflix.Notify.Failure('La temperatura maxima debe ser mayor a la minima');
+        }
+
     }else{                             
         $("#min_temp_id").removeClass('is-invalid');
         $("#min_temp_id").addClass('is-valid');
@@ -109,11 +126,20 @@ $('#temp-range-confirm').click(function(){
         console.log("envio temperatura")
         socket.emit('config-temp-range', {min_temp: min_temp, max_temp: max_temp});
 
-        Notiflix.Report.Success(
-            'Exito',
-            `Se actualizo de forma correcta la temperatura minima a ${min_temp} y la temperatura maxima a ${max_temp}`,
-            'Aceptar'
-        );
+        if(sens == 'luz'){
+            Notiflix.Report.Success(
+                'Exito',
+                `Se actualizo de forma correcta la luz minima a ${min_temp} lux y la luz maxima a ${max_temp} lux`,
+                'Aceptar'
+            );
+        }else{
+            Notiflix.Report.Success(
+                'Exito',
+                `Se actualizo de forma correcta la temperatura minima a ${min_temp} ºC y la temperatura maxima a ${max_temp} ºC`,
+                'Aceptar'
+            );
+        }
+        
 
     }
 
