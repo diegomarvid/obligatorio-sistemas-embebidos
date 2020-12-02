@@ -725,7 +725,7 @@ io.sockets.on('connection', function(socket) {
                 }
                
                 //Mando array de promedios
-                socket.emit('plotUpdate', temperaturas_promedio);
+                socket.emit('plotUpdate', {temp: temperaturas_promedio, sens: data.sens});
                 
             }
             

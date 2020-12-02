@@ -538,14 +538,25 @@ socket.on('plotUpdate', function(data) {
     temperatures = [];
     hours = [];
    
-    for (let i in data) {
+    for (let i in data.temp) {
         //Obtener array de temperatura
-        temperatures.push(data[i].temperature);
+        temperatures.push(data.temp[i].temperature);
         //Sacar milisegundos de fecha
-        str = data[i].date.substring(0,19);
+        str = data.temp[i].date.substring(0,19);
         //Obtener array de horas
         hours.push(str)
         
+    }
+
+    let titulo = 'Temperaturas del sensor analogico';
+    let unidad = 'Temperatura (°C)';
+
+    if(data.sens == 'luz'){
+        titulo = 'Temperaturas del sensor de luz';
+        unidad = 'Luz (lux)'
+    }else if(data.sens == 'digital'){
+        titulo = 'Temperaturas del sensor digital';
+
     }
 
     //Actualizar grafica
@@ -561,7 +572,7 @@ socket.on('plotUpdate', function(data) {
             responsive: true,
             title:{
                 display: true,
-                text: 'Temperaturas del sensor analogico'
+                text: titulo
             },
             legend:{
                 display: false
@@ -570,7 +581,7 @@ socket.on('plotUpdate', function(data) {
                 yAxes: [{
                   scaleLabel: {
                     display: true,
-                    labelString: 'Temperatura (°C)'
+                    labelString: unidad
                   }
                 }]
               }     
